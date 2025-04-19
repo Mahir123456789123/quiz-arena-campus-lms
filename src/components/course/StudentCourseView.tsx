@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FileText, FileVideo, File, MessageSquare } from 'lucide-react';
+import { FileText, FileVideo, File, MessageSquare, Lock } from 'lucide-react';
 import ChapterMaterialViewer from './ChapterMaterialViewer';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import CourseHeader from './CourseHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DiscussionsTab from './DiscussionsTab';
+import { useCompletedMaterials } from '@/hooks/useCompletedMaterials';
 
 const StudentCourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -40,6 +41,20 @@ const StudentCourseView = () => {
     },
     enabled: !!courseId
   });
+
+  const { completedMaterials, markAsCompleted } = useCompletedMaterials(courseId);
+
+  // Helper function to check if a material is accessible
+  const isMaterialAccessible = (chapterIndex: number, materialIndex: number, chapterMaterials: any[]) => {
+    if (chapterIndex === 0 && materialIndex === 0) return true;
+    
+    // Get previous material
+    const previousMaterial = materialIndex === 0 
+      ? courseData?.chapters[chapterIndex - 1]?.chapter_materials?.slice(-1)[0]
+      : chapterMaterials[materialIndex - 1];
+
+    return previousMaterial && completedMaterials.includes(previousMaterial.id);
+  };
 
   if (isLoadingCourse) {
     return (
@@ -76,14 +91,14 @@ const StudentCourseView = () => {
             <CardContent>
               {courseData?.chapters && courseData.chapters.length > 0 ? (
                 <Accordion type="single" collapsible className="space-y-3">
-                  {courseData.chapters.map((chapter: any, index: number) => (
+                  {courseData.chapters.map((chapter: any, chapterIndex: number) => (
                     <AccordionItem key={chapter.id} value={chapter.id} className="border rounded-md overflow-hidden">
                       <div className="bg-card">
                         <AccordionTrigger className="px-4 py-3 hover:no-underline">
                           <div className="flex items-start gap-2 text-left">
                             <div>
                               <h3 className="font-medium">
-                                Chapter {index + 1}: {chapter.title}
+                                Chapter {chapterIndex + 1}: {chapter.title}
                               </h3>
                               {chapter.description && (
                                 <p className="text-sm text-muted-foreground mt-1">
@@ -97,13 +112,35 @@ const StudentCourseView = () => {
                       <AccordionContent className="px-4 pb-4 pt-2">
                         {chapter.chapter_materials && chapter.chapter_materials.length > 0 ? (
                           <div className="space-y-3">
-                            {chapter.chapter_materials.map((material: any) => (
-                              <ChapterMaterialViewer 
-                                key={material.id}
-                                material={material}
-                                onDelete={() => {}} // Students can't delete materials
-                              />
-                            ))}
+                            {chapter.chapter_materials.map((material: any, materialIndex: number) => {
+                              const isAccessible = isMaterialAccessible(chapterIndex, materialIndex, chapter.chapter_materials);
+                              const isCompleted = completedMaterials.includes(material.id);
+
+                              if (!isAccessible) {
+                                return (
+                                  <Card key={material.id} className="bg-muted/50">
+                                    <CardHeader className="p-4">
+                                      <CardTitle className="text-base font-medium flex items-center gap-2 text-muted-foreground">
+                                        <Lock className="h-4 w-4" />
+                                        {material.title}
+                                        <span className="text-sm text-muted-foreground ml-2">
+                                          (Complete previous material to unlock)
+                                        </span>
+                                      </CardTitle>
+                                    </CardHeader>
+                                  </Card>
+                                );
+                              }
+
+                              return (
+                                <ChapterMaterialViewer 
+                                  key={material.id}
+                                  material={material}
+                                  onComplete={() => markAsCompleted(material.id)}
+                                  isCompleted={isCompleted}
+                                />
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="text-center py-6">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,9 +12,16 @@ import TextToSpeech from "@/components/ui/text-to-speech";
 interface ChapterMaterialViewerProps {
   material: any;
   onDelete?: (id: string) => void;
+  onComplete?: () => void;
+  isCompleted?: boolean;
 }
 
-const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProps) => {
+const ChapterMaterialViewer = ({ 
+  material, 
+  onDelete,
+  onComplete,
+  isCompleted 
+}: ChapterMaterialViewerProps) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionContent, setSubmissionContent] = useState('');
@@ -169,7 +175,14 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
     <Card className="mb-4">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>{material.title}</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>{material.title}</CardTitle>
+            {isCompleted && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                Completed
+              </span>
+            )}
+          </div>
           {onDelete && (
             <Button 
               variant="destructive" 
@@ -183,6 +196,14 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
       </CardHeader>
       <CardContent>
         {renderMaterialContent()}
+
+        {!isCompleted && onComplete && (
+          <div className="mt-4 flex justify-end">
+            <Button onClick={onComplete}>
+              Mark as Complete
+            </Button>
+          </div>
+        )}
 
         {material.is_assignment && (
           <div className="mt-6 border-t pt-4">

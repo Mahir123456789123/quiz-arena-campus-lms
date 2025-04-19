@@ -194,6 +194,35 @@ export type Database = {
           },
         ]
       }
+      completed_materials: {
+        Row: {
+          completed_at: string | null
+          id: string
+          material_id: string
+          student_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          material_id: string
+          student_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          material_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "completed_materials_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "chapter_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content: {
         Row: {
           article_snippet: string | null
