@@ -15,7 +15,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export const CreateMeetingButton = ({ variant = "outline", showText = true, className = "" }) => {
+export const CreateMeetingButton = ({ 
+  variant = "outline", 
+  showText = true, 
+  className = "" 
+}) => {
   const navigate = useNavigate();
   const isInstructor = useIsInstructor();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -37,7 +41,7 @@ export const CreateMeetingButton = ({ variant = "outline", showText = true, clas
     }
   };
 
-  const scheduleMeeting = (e) => {
+  const scheduleMeeting = (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
@@ -66,8 +70,8 @@ export const CreateMeetingButton = ({ variant = "outline", showText = true, clas
   return (
     <>
       <Button 
-        onClick={createInstantMeeting} 
         variant={variant} 
+        onClick={createInstantMeeting} 
         className={`gap-2 ${className}`}
       >
         <Video className="h-4 w-4" />
