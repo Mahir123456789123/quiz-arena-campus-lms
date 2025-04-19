@@ -16,9 +16,11 @@ export const useCourseDiscussions = (courseId: string) => {
         .from('course_discussions')
         .select(`
           *,
-          profiles (
-            full_name,
-            avatar_url
+          user:user_id (
+            profiles:id (
+              full_name,
+              avatar_url
+            )
           )
         `)
         .eq('course_id', courseId)
@@ -30,8 +32,8 @@ export const useCourseDiscussions = (courseId: string) => {
       const discussions = data.map((discussion: any) => ({
         ...discussion,
         profiles: {
-          full_name: discussion.profiles?.full_name || '',
-          avatar_url: discussion.profiles?.avatar_url || ''
+          full_name: discussion.user?.profiles?.full_name || '',
+          avatar_url: discussion.user?.profiles?.avatar_url || ''
         }
       })) as CourseDiscussion[];
 
@@ -52,15 +54,27 @@ export const useCourseDiscussions = (courseId: string) => {
         })
         .select(`
           *,
-          profiles (
-            full_name, 
-            avatar_url
+          user:user_id (
+            profiles:id (
+              full_name, 
+              avatar_url
+            )
           )
         `)
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Transform the returned data to match CourseDiscussion type
+      const formattedData = {
+        ...data,
+        profiles: {
+          full_name: data.user?.profiles?.full_name || '',
+          avatar_url: data.user?.profiles?.avatar_url || ''
+        }
+      };
+      
+      return formattedData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseDiscussions', courseId] });
