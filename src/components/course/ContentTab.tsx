@@ -21,7 +21,7 @@ interface ContentTabProps {
   chapters: any[];
   createChapter: (data: { title: string; description: string }) => void;
   deleteChapter: (id: string) => void;
-  addMaterial: (chapterId: string) => void;
+  addMaterial: (chapterId: string) => string;
   deleteMaterial: (id: string) => void;
 }
 
@@ -52,6 +52,7 @@ const ContentTab = ({
   const handleAddMaterial = (chapterId: string) => {
     setActiveChapter(chapterId);
     setShowMaterialForm(true);
+    addMaterial(chapterId);
   };
 
   return (

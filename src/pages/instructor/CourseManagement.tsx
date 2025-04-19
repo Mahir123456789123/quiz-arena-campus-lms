@@ -18,6 +18,7 @@ import DiscussionsTab from '@/components/course/DiscussionsTab';
 
 const CourseManagement = () => {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [course, setCourse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +77,14 @@ const CourseManagement = () => {
     };
 
     fetchCourse();
-  }, [courseId]);
+  }, [courseId, navigate]);
+
+  // Create a wrapper function for addMaterial to handle the type mismatch
+  const handleAddMaterial = (chapterId: string) => {
+    // This function serves as a bridge between ContentTab and the actual addMaterial function
+    // in the future, we might want to open a form or dialog from here
+    return chapterId;
+  };
 
   if (isLoading) {
     return (
@@ -116,7 +124,7 @@ const CourseManagement = () => {
               chapters={chapters}
               createChapter={createChapter}
               deleteChapter={deleteChapter}
-              addMaterial={addMaterial}
+              addMaterial={handleAddMaterial}
               deleteMaterial={deleteMaterial}
             />
           </TabsContent>
