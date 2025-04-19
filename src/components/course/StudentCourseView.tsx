@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -6,14 +7,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FileText, FileVideo, File } from 'lucide-react';
+import { FileText, FileVideo, File, MessageSquare } from 'lucide-react';
 import ChapterMaterialViewer from './ChapterMaterialViewer';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import CourseHeader from './CourseHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, MessageSquare } from 'lucide-react';
 import DiscussionsTab from './DiscussionsTab';
 
 const StudentCourseView = () => {
