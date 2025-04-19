@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
 import TextToSpeech from "@/components/ui/text-to-speech";
-import StudyMaterial from "@/components/ui/study-material";
+import StudyMaterial from "./StudyMaterial";
 
 interface ChapterMaterialViewerProps {
   material: any;
