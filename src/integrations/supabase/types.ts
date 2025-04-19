@@ -194,6 +194,57 @@ export type Database = {
           },
         ]
       }
+      content: {
+        Row: {
+          article_snippet: string | null
+          author_id: string
+          author_name: string
+          created_at: string | null
+          date: string | null
+          file_path: string | null
+          id: string
+          is_published: boolean
+          rating: number
+          subject: string
+          title: string
+          type: string
+          updated_at: string | null
+          views: number
+        }
+        Insert: {
+          article_snippet?: string | null
+          author_id: string
+          author_name: string
+          created_at?: string | null
+          date?: string | null
+          file_path?: string | null
+          id?: string
+          is_published?: boolean
+          rating?: number
+          subject: string
+          title: string
+          type: string
+          updated_at?: string | null
+          views?: number
+        }
+        Update: {
+          article_snippet?: string | null
+          author_id?: string
+          author_name?: string
+          created_at?: string | null
+          date?: string | null
+          file_path?: string | null
+          id?: string
+          is_published?: boolean
+          rating?: number
+          subject?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+          views?: number
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           code: string

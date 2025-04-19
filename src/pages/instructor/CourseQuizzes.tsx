@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -144,7 +143,7 @@ const CourseQuizzes = () => {
             
             <TabsContent value="create">
               {courseId ? (
-                <InstructorQuizCreator courseId={courseId} key={courseId} />
+                <InstructorQuizCreator key={courseId} />
               ) : (
                 <div className="p-6 text-center border rounded-lg">
                   <p className="text-lg mb-4">Select a course to create quizzes for</p>

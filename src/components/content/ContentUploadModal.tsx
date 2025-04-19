@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 
 interface ContentUploadModalProps {
   onClose: () => void;
@@ -43,10 +44,38 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
 
     setIsUploading(true);
     try {
-      toast.success('The content feature is currently being set up');
-      toast.info('Your content will be available soon');
+      let filePath = null;
+
+      // Handle file upload if a file is selected
+      if (formData.file) {
+        const fileExt = formData.file.name.split('.').pop();
+        const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('content')
+          .upload(fileName, formData.file);
+
+        if (uploadError) throw uploadError;
+        filePath = fileName;
+      }
+
+      // Create content entry
+      const { error: insertError } = await supabase
+        .from('content')
+        .insert({
+          title: formData.title,
+          subject: formData.subject,
+          type: formData.type,
+          article_snippet: formData.type === 'article' ? formData.articleSnippet : null,
+          file_path: filePath,
+          author_id: user.id,
+          author_name: profile?.full_name || user.email
+        });
+
+      if (insertError) throw insertError;
+
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
       toast.error('Failed to upload content');
     } finally {
