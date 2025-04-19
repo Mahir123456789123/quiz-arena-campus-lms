@@ -127,6 +127,47 @@ export type Database = {
           },
         ]
       }
+      study_sessions: {
+        Row: {
+          completedmodules: number
+          course_id: string
+          created_at: string | null
+          date: string
+          id: string
+          minutes: number
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          completedmodules?: number
+          course_id: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          minutes: number
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          completedmodules?: number
+          course_id?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          minutes?: number
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
