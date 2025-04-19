@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +20,12 @@ import QuizBattlePage from "./pages/quiz/QuizBattlePage";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ContentHub from "./pages/ContentHub";
+import HelpCenter from "./pages/HelpCenter";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ContactUs from "./pages/ContactUs";
+import TermsOfService from "./pages/TermsOfService";
+import NotificationsPage from "./pages/NotificationsPage";
+import SearchResults from "./pages/SearchResults";
 
 const queryClient = new QueryClient();
 
@@ -29,8 +36,8 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Routes>
-              <Route path="/auth" element={<AuthPage />} />
               <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
@@ -42,6 +49,12 @@ function App() {
               <Route path="/quiz-battles" element={<QuizBattles />} />
               <Route path="/quiz-battle/:roomId" element={<QuizBattlePage />} />
               <Route path="/content-hub" element={<ProtectedRoute><ContentHub /></ProtectedRoute>} />
+              <Route path="/help" element={<HelpCenter />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="/search" element={<SearchResults />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ChatbotButton />

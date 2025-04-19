@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileIcon, Eye, Star, Download } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 import { Content } from '@/types/content';
+import { toast } from 'sonner';
 
 const ContentCard = ({ content }: { content: Content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -25,12 +27,38 @@ const ContentCard = ({ content }: { content: Content }) => {
 
   const handleDownload = async () => {
     try {
-      if (!content.file_path) return;
+      if (!content.file_path) {
+        toast.error('No file available for download');
+        return;
+      }
       
-      // Temporary mock function - will be replaced with actual implementation
-      alert('File download will be available once the content table is created');
+      const { data, error } = await supabase.storage
+        .from('content')
+        .download(content.file_path);
+
+      if (error) throw error;
+
+      // Create a download link
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = content.title; // Use content title as filename
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Update download count
+      const { error: updateError } = await supabase
+        .from('content')
+        .update({ downloads: content.views + 1 })
+        .eq('id', content.id);
+
+      if (updateError) throw updateError;
+
+      toast.success('File downloaded successfully');
     } catch (error) {
       console.error('Error downloading file:', error);
+      toast.error('Failed to download file');
     }
   };
 
@@ -85,6 +113,11 @@ const ContentCard = ({ content }: { content: Content }) => {
           <span className="flex items-center gap-1">
             <Star className="h-4 w-4" /> {content.rating}
           </span>
+          {content.downloads !== undefined && (
+            <span className="flex items-center gap-1">
+              <Download className="h-4 w-4" /> {content.downloads}
+            </span>
+          )}
         </div>
         
         {content.file_path && (

@@ -201,6 +201,7 @@ export type Database = {
           author_name: string
           created_at: string | null
           date: string | null
+          downloads: number
           file_path: string | null
           id: string
           is_published: boolean
@@ -217,6 +218,7 @@ export type Database = {
           author_name: string
           created_at?: string | null
           date?: string | null
+          downloads?: number
           file_path?: string | null
           id?: string
           is_published?: boolean
@@ -233,6 +235,7 @@ export type Database = {
           author_name?: string
           created_at?: string | null
           date?: string | null
+          downloads?: number
           file_path?: string | null
           id?: string
           is_published?: boolean
@@ -250,7 +253,9 @@ export type Database = {
           content: string
           course_id: string
           created_at: string | null
+          dislikes: string[] | null
           id: string
+          likes: string[] | null
           updated_at: string | null
           user_id: string
         }
@@ -258,7 +263,9 @@ export type Database = {
           content: string
           course_id: string
           created_at?: string | null
+          dislikes?: string[] | null
           id?: string
+          likes?: string[] | null
           updated_at?: string | null
           user_id: string
         }
@@ -266,7 +273,9 @@ export type Database = {
           content?: string
           course_id?: string
           created_at?: string | null
+          dislikes?: string[] | null
           id?: string
+          likes?: string[] | null
           updated_at?: string | null
           user_id?: string
         }

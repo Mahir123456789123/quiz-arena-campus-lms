@@ -16,26 +16,13 @@ export const useCourseDiscussions = (courseId: string) => {
         .from('course_discussions')
         .select(`
           *,
-          profiles (
-            full_name,
-            avatar_url
-          )
+          profiles (full_name, avatar_url)
         `)
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // Transform the data to match the CourseDiscussion type
-      const discussions = data.map((discussion: any) => ({
-        ...discussion,
-        profiles: {
-          full_name: discussion.profiles?.full_name || '',
-          avatar_url: discussion.profiles?.avatar_url || ''
-        }
-      })) as CourseDiscussion[];
-
-      return discussions;
+      return data as unknown as CourseDiscussion[];
     }
   });
 
@@ -48,19 +35,18 @@ export const useCourseDiscussions = (courseId: string) => {
         .insert({
           content,
           course_id: courseId,
-          user_id: user.id
+          user_id: user.id,
+          likes: [],
+          dislikes: []
         })
         .select(`
           *,
-          profiles (
-            full_name, 
-            avatar_url
-          )
+          profiles (full_name, avatar_url)
         `)
         .single();
 
       if (error) throw error;
-      return data;
+      return data as unknown as CourseDiscussion;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseDiscussions', courseId] });
@@ -90,11 +76,67 @@ export const useCourseDiscussions = (courseId: string) => {
     }
   });
 
+  const likeMutation = useMutation({
+    mutationFn: async ({ discussionId, action }: { discussionId: string, action: 'like' | 'dislike' }) => {
+      if (!user) throw new Error('You must be logged in to like or dislike');
+      
+      // First, get the current likes and dislikes
+      const { data: discussion, error: fetchError } = await supabase
+        .from('course_discussions')
+        .select('likes, dislikes')
+        .eq('id', discussionId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      let likes = discussion.likes || [];
+      let dislikes = discussion.dislikes || [];
+      
+      if (action === 'like') {
+        // If already liked, remove like
+        if (likes.includes(user.id)) {
+          likes = likes.filter((id: string) => id !== user.id);
+        } else {
+          // Add like and remove from dislikes if present
+          likes.push(user.id);
+          dislikes = dislikes.filter((id: string) => id !== user.id);
+        }
+      } else {
+        // If already disliked, remove dislike
+        if (dislikes.includes(user.id)) {
+          dislikes = dislikes.filter((id: string) => id !== user.id);
+        } else {
+          // Add dislike and remove from likes if present
+          dislikes.push(user.id);
+          likes = likes.filter((id: string) => id !== user.id);
+        }
+      }
+      
+      // Update the discussion
+      const { error: updateError } = await supabase
+        .from('course_discussions')
+        .update({ likes, dislikes })
+        .eq('id', discussionId);
+      
+      if (updateError) throw updateError;
+      
+      return { discussionId, likes, dislikes };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courseDiscussions', courseId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update reaction');
+    }
+  });
+
   return {
     discussions,
     isLoading,
     error,
     createDiscussion: createMutation.mutate,
-    deleteDiscussion: deleteMutation.mutate
+    deleteDiscussion: deleteMutation.mutate,
+    likeDiscussion: (discussionId: string) => likeMutation.mutate({ discussionId, action: 'like' }),
+    dislikeDiscussion: (discussionId: string) => likeMutation.mutate({ discussionId, action: 'dislike' })
   };
 };

@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Book, Mail } from 'lucide-react';
+import { Book } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/lib/auth';
 import { Separator } from '@/components/ui/separator';
+import { GoogleIcon } from '@/components/icons/GoogleIcon';
 
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -109,7 +110,7 @@ const AuthPage = () => {
                 </svg>
               </div>
             ) : (
-              <Mail className="mr-2 h-5 w-5" />
+              <GoogleIcon className="mr-2 h-5 w-5" />
             )}
             Continue with Google
           </Button>
