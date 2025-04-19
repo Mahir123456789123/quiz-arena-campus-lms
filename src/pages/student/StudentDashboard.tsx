@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import ProgressGraphs from '@/components/dashboard/ProgressGraphs';
+import { DeadlinesCalendar } from '@/components/dashboard/DeadlinesCalendar';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -87,6 +87,7 @@ const StudentDashboard = () => {
         </div>
 
         <div className="grid gap-6 mb-8">
+          <DeadlinesCalendar />
           <ProgressGraphs />
         </div>
 

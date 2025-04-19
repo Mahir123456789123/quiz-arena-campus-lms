@@ -7,6 +7,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileText, FileVideo, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 interface ChapterMaterialFormProps {
   chapterId: string;
@@ -20,6 +28,9 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isAssignment, setIsAssignment] = useState(false);
+  const [deadline, setDeadline] = useState<Date>();
+  const [totalMarks, setTotalMarks] = useState(100);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,13 +43,11 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
     try {
       let url = null;
 
-      // Handle file upload for file and video types
       if ((type === 'file' || type === 'video') && file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${chapterId}-${Math.random().toString(36).slice(2)}.${fileExt}`;
         const filePath = `${chapterId}/${fileName}`;
 
-        // Upload file to Supabase Storage (bucket is already created via SQL)
         const { error: uploadError } = await supabase
           .storage
           .from('course-materials')
@@ -46,7 +55,6 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
 
         if (uploadError) throw uploadError;
 
-        // Get public URL for the uploaded file
         const { data: { publicUrl } } = supabase
           .storage
           .from('course-materials')
@@ -55,23 +63,39 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
         url = publicUrl;
       }
 
-      // Create material record in database
-      const { error } = await supabase
+      const { data: materialData, error: materialError } = await supabase
         .from('chapter_materials')
         .insert({
           chapter_id: chapterId,
           title,
           type,
           content: type === 'text' ? content : null,
-          url: url
-        });
+          url,
+          is_assignment: isAssignment
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
-      
+      if (materialError) throw materialError;
+
+      if (isAssignment && deadline) {
+        const { error: assignmentError } = await supabase
+          .from('assignments')
+          .insert({
+            material_id: materialData.id,
+            title,
+            description: content,
+            deadline,
+            total_marks: totalMarks
+          });
+
+        if (assignmentError) throw assignmentError;
+      }
+
       toast.success('Material added successfully');
       onSuccess();
     } catch (error: any) {
-      toast.error(`Error adding material: ${error.message}`);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -165,6 +189,61 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
                 )}
               </div>
             </div>
+          )}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Is this an assignment?</label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isAssignment}
+                onChange={(e) => setIsAssignment(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-sm">This material requires submission</span>
+            </div>
+          </div>
+
+          {isAssignment && (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Deadline</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !deadline && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {deadline ? format(deadline, "PPP") : <span>Pick a deadline</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={deadline}
+                      onSelect={setDeadline}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Total Marks</label>
+                <Input
+                  type="number"
+                  value={totalMarks}
+                  onChange={(e) => setTotalMarks(Number(e.target.value))}
+                  min={1}
+                  required={isAssignment}
+                />
+              </div>
+            </>
           )}
 
           <div className="flex gap-2 justify-end">

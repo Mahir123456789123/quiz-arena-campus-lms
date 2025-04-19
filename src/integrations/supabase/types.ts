@@ -9,12 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assignments: {
+        Row: {
+          created_at: string | null
+          deadline: string
+          description: string | null
+          id: string
+          material_id: string
+          title: string
+          total_marks: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deadline: string
+          description?: string | null
+          id?: string
+          material_id: string
+          title: string
+          total_marks?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deadline?: string
+          description?: string | null
+          id?: string
+          material_id?: string
+          title?: string
+          total_marks?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "chapter_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapter_materials: {
         Row: {
           chapter_id: string
           content: string | null
           created_at: string | null
           id: string
+          is_assignment: boolean | null
           title: string
           type: string
           updated_at: string | null
@@ -25,6 +67,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           id?: string
+          is_assignment?: boolean | null
           title: string
           type: string
           updated_at?: string | null
@@ -35,6 +78,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           id?: string
+          is_assignment?: boolean | null
           title?: string
           type?: string
           updated_at?: string | null
@@ -293,6 +337,57 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          assignment_id: string
+          feedback: string | null
+          graded_at: string | null
+          id: string
+          marks_obtained: number | null
+          student_id: string
+          submission_content: string | null
+          submission_url: string | null
+          submitted_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          feedback?: string | null
+          graded_at?: string | null
+          id?: string
+          marks_obtained?: number | null
+          student_id: string
+          submission_content?: string | null
+          submission_url?: string | null
+          submitted_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          feedback?: string | null
+          graded_at?: string | null
+          id?: string
+          marks_obtained?: number | null
+          student_id?: string
+          submission_content?: string | null
+          submission_url?: string | null
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
