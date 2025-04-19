@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,10 +9,8 @@ import type { Quiz, QuizRoom } from '@/types/quiz';
 
 const MultiplayerQuizBattle = () => {
   const { user } = useAuth();
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [roomCode, setRoomCode] = useState('');
   const [availableQuizzes, setAvailableQuizzes] = useState<Quiz[]>([]);
-  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [activeRooms, setActiveRooms] = useState<QuizRoom[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,49 +61,6 @@ const MultiplayerQuizBattle = () => {
     } catch (error: any) {
       toast.error('Failed to load active rooms');
       console.error(error);
-    }
-  };
-
-  const createRoom = async (quizId: string) => {
-    if (!quizId) {
-      toast.error('Please select a quiz first');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const code = Math.floor(100 + Math.random() * 900).toString();
-      
-      const { data: room, error } = await supabase
-        .from('quiz_rooms')
-        .insert({
-          quiz_id: quizId,
-          room_code: code,
-          host_id: user?.id,
-          status: 'waiting',
-          max_players: 10
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      await supabase
-        .from('quiz_participants')
-        .insert({
-          room_id: room.id,
-          user_id: user?.id,
-          score: 0,
-          status: 'active'
-        });
-
-      toast.success(`Room created! Code: ${code}`);
-      fetchActiveRooms();
-      return room;
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -160,51 +116,10 @@ const MultiplayerQuizBattle = () => {
     }
   };
 
-  const handleQuizSelect = (quizId: string) => {
-    setSelectedQuizId(quizId);
-  };
-
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-8">Quiz Battles</h1>
-      
       <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
-        <h2 className="text-2xl font-bold mb-4">Create a Room</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Select a Quiz</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableQuizzes.length > 0 ? (
-                availableQuizzes.map(quiz => (
-                  <div 
-                    key={quiz.id}
-                    className={`border p-4 rounded-lg cursor-pointer transition-colors ${
-                      selectedQuizId === quiz.id ? 'border-primary bg-primary/10' : 'hover:border-primary/50'
-                    }`}
-                    onClick={() => handleQuizSelect(quiz.id)}
-                  >
-                    <h3 className="font-semibold">{quiz.title}</h3>
-                    <p className="text-sm text-muted-foreground">{quiz.question_count} questions • {quiz.difficulty}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground col-span-3">No quizzes available</p>
-              )}
-            </div>
-          </div>
-          
-          <Button 
-            onClick={() => createRoom(selectedQuizId!)}
-            disabled={!selectedQuizId || isLoading}
-            className="w-full md:w-auto"
-          >
-            {isLoading ? 'Creating...' : 'Create Room'}
-          </Button>
-        </div>
-      </div>
-
-      <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
-        <h2 className="text-2xl font-bold mb-4">Join a Room</h2>
+        <h2 className="text-2xl font-bold mb-4">Join a Quiz</h2>
         <div className="flex flex-col md:flex-row gap-4">
           <Input
             placeholder="Enter room code"

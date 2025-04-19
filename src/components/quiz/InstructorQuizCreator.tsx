@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -32,7 +33,6 @@ const InstructorQuizCreator = () => {
 
   const handleCreateQuiz = async () => {
     try {
-      // Validate inputs
       if (questions.length === 0) {
         toast.error('Please add at least one question');
         return;
@@ -49,12 +49,28 @@ const InstructorQuizCreator = () => {
           course_id: courseId,
           created_by: user?.id,
           question_count: questions.length,
-          is_published: false
+          is_published: true // Set to true so students can see it
         })
         .select()
         .single();
 
       if (quizError) throw quizError;
+
+      // Generate a random 3-digit room code
+      const roomCode = Math.floor(100 + Math.random() * 900).toString();
+
+      // Create a quiz room
+      const { error: roomError } = await supabase
+        .from('quiz_rooms')
+        .insert({
+          quiz_id: quiz.id,
+          room_code: roomCode,
+          host_id: user?.id,
+          status: 'waiting',
+          max_players: 50 // Allow multiple students
+        });
+
+      if (roomError) throw roomError;
 
       // Prepare questions with quiz_id
       const questionsWithQuizId = questions.map(q => ({
@@ -73,7 +89,7 @@ const InstructorQuizCreator = () => {
 
       if (questionsError) throw questionsError;
 
-      toast.success('Quiz created successfully!');
+      toast.success(`Quiz created successfully! Room code: ${roomCode}`);
       
       // Reset form
       setTitle('');
@@ -102,7 +118,7 @@ const InstructorQuizCreator = () => {
         <div className="grid grid-cols-2 gap-4">
           <Input
             type="number"
-            placeholder="Time Limit (seconds)"
+            placeholder="Time Limit (minutes)"
             value={timeLimit}
             onChange={e => setTimeLimit(parseInt(e.target.value))}
           />
