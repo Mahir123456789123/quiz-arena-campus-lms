@@ -1,7 +1,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as GoogleGenerativeAI from "https://esm.sh/v135/google-generativeai@0.5.0";
+
+// Import Google Generative AI library directly from npm
+import { GoogleGenerativeAI } from "npm:@google/generative-ai@latest";
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 if (!geminiApiKey) {
@@ -23,7 +25,7 @@ serve(async (req) => {
     const { message, student_id } = await req.json();
 
     // Initialize Gemini
-    const genai = new GoogleGenerativeAI.GoogleGenerativeAI(geminiApiKey);
+    const genai = new GoogleGenerativeAI(geminiApiKey);
     const model = genai.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     // Construct prompt
