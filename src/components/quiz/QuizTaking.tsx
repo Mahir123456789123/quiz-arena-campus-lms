@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Trophy } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Question {
   question: string;
@@ -79,11 +80,65 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
     }
   }, [profile, navigate]);
 
+  useEffect(() => {
+    if (isFinished) {
+      fetchLeaderboard();
+    }
+  }, [isFinished, roomId]);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('quiz_results')
+        .select(`
+          score,
+          time_taken,
+          profiles:user_id (
+            full_name
+          )
+        `)
+        .eq('quiz_category', roomId)
+        .order('score', { ascending: false })
+        .order('time_taken', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedLeaderboard = data.map(entry => ({
+        username: entry.profiles?.full_name || 'Anonymous Student',
+        score: entry.score,
+        timeTaken: entry.time_taken
+      }));
+
+      setLeaderboard(formattedLeaderboard);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      toast.error('Failed to load leaderboard');
+    }
+  };
+
+  const saveQuizResult = async (score: number, timeTaken: number) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_results')
+        .insert({
+          quiz_category: roomId,
+          score: score,
+          time_taken: timeTaken,
+          user_id: profile?.id
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving quiz result:', error);
+      toast.error('Failed to save quiz result');
+    }
+  };
+
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex);
   };
 
-  const goToNextQuestion = () => {
+  const goToNextQuestion = async () => {
     if (selectedAnswer === null) {
       toast.error('Please select an answer');
       return;
@@ -98,18 +153,12 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
-      const timeTaken = (Date.now() - startTime) / 1000; // Convert to seconds
+      const timeTaken = (Date.now() - startTime) / 1000;
+      const finalScore = score + (selectedAnswer + 1 === parseInt(questions[currentQuestionIndex].answer) ? 1 : 0);
+      
       setIsFinished(true);
-      
-      // Add current user's score to leaderboard
-      const newEntry: LeaderboardEntry = {
-        username: profile?.full_name || 'Anonymous Student',
-        score: score + (selectedAnswer + 1 === parseInt(questions[currentQuestionIndex].answer) ? 1 : 0),
-        timeTaken
-      };
-      
-      // Set leaderboard with only the current user's score
-      setLeaderboard([newEntry].sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken));
+      await saveQuizResult(finalScore, timeTaken);
+      await fetchLeaderboard();
     }
   };
 

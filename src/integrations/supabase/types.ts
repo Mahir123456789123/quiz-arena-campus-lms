@@ -588,6 +588,33 @@ export type Database = {
           },
         ]
       }
+      quiz_results: {
+        Row: {
+          completed_at: string | null
+          id: string
+          quiz_category: string
+          score: number
+          time_taken: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          quiz_category: string
+          score: number
+          time_taken: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          quiz_category?: string
+          score?: number
+          time_taken?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       quiz_rooms: {
         Row: {
           created_at: string | null
