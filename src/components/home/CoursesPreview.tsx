@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -63,12 +64,11 @@ const CoursesPreview = () => {
     category: course.category,
     title: (
       <div className="flex flex-col gap-1">
-        <span className="text-xl font-semibold">{course.title}</span> {/* Increased title font size */}
+        <span className="text-xl font-semibold">{course.title}</span>
         <span className="text-sm text-muted-foreground">{course.instructor}</span>
-        <span className="text-sm text-muted-foreground">{course.duration} • {course.level}</span> {/* Increased text size for duration & level */}
+        <span className="text-sm text-muted-foreground">{course.duration} • {course.level}</span>
       </div>
     ),
-    
     src: course.image,
     content: (
       <CustomCard className="bg-[#F5F5F7] dark:bg-neutral-800 p-6 md:p-6 rounded-2xl h-[350px] flex flex-col justify-between">
@@ -77,14 +77,14 @@ const CoursesPreview = () => {
             <Badge variant="outline" className="bg-card">{course.category}</Badge>
             <Badge className="bg-edu-primary/10 text-edu-primary border-edu-primary">{course.level}</Badge>
           </div>
-          <CardTitle className="mt-2 text-xl font-semibold">{course.title}</CardTitle> {/* Increased title font size */}
-          <CardDescription className="text-base text-primary-700 dark:text-primary-300">Instructor: {course.instructor}</CardDescription> {/* Increased font size for instructor and changed color */}
+          <CardTitle className="mt-2 text-xl font-semibold">{course.title}</CardTitle>
+          <CardDescription className="text-base text-primary-700 dark:text-primary-300">Instructor: {course.instructor}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-lg font-sans max-w-3xl mx-auto">
             {course.description}
           </p>
-          <p className="mt-4 text-base text-primary-700 dark:text-primary-300">Duration: {course.duration}</p> {/* Increased font size and color for duration */}
+          <p className="mt-4 text-base text-primary-700 dark:text-primary-300">Duration: {course.duration}</p>
         </CardContent>
         <CardFooter className="mt-6">
           <Button asChild className="w-full">

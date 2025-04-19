@@ -13,7 +13,6 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
-import Image, { ImageProps } from "next/image";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 
 interface CarouselProps {
@@ -23,7 +22,7 @@ interface CarouselProps {
 
 type Card = {
   src: string;
-  title: string;
+  title: React.ReactNode;
   category: string;
   content: React.ReactNode;
 };
@@ -71,7 +70,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
 
   const handleCardClose = (index: number) => {
     if (carouselRef.current) {
-      const cardWidth = isMobile() ? 230 : 384; // (md:w-96)
+      const cardWidth = isMobile() ? 230 : 384;
       const gap = isMobile() ? 4 : 8;
       const scrollPosition = (cardWidth + gap) * (index + 1);
       carouselRef.current.scrollTo({
@@ -105,7 +104,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
           <div
             className={cn(
               "flex flex-row justify-start gap-4 pl-4",
-              "mx-auto max-w-7xl", // remove max-w-4xl if you want the carousel to span the full width of its container
+              "mx-auto max-w-7xl",
             )}
           >
             {items.map((item, index) => (
@@ -225,12 +224,12 @@ export const Card = ({
               >
                 {card.category}
               </motion.p>
-              <motion.p
+              <motion.div
                 layoutId={layout ? `title-${card.title}` : undefined}
                 className="mt-4 text-2xl font-semibold text-neutral-700 md:text-5xl dark:text-white"
               >
                 {card.title}
-              </motion.p>
+              </motion.div>
               <div className="py-10">{card.content}</div>
             </motion.div>
           </div>
@@ -249,17 +248,16 @@ export const Card = ({
           >
             {card.category}
           </motion.p>
-          <motion.p
+          <motion.div
             layoutId={layout ? `title-${card.title}` : undefined}
             className="mt-2 max-w-xs text-left font-sans text-xl font-semibold [text-wrap:balance] text-white md:text-3xl"
           >
             {card.title}
-          </motion.p>
+          </motion.div>
         </div>
         <BlurImage
           src={card.src}
-          alt={card.title}
-          fill
+          alt={typeof card.title === 'string' ? card.title : 'Course image'}
           className="absolute inset-0 z-10 object-cover"
         />
       </motion.button>
@@ -268,13 +266,11 @@ export const Card = ({
 };
 
 export const BlurImage = ({
-  height,
-  width,
   src,
   className,
   alt,
   ...rest
-}: ImageProps) => {
+}: React.ImgHTMLAttributes<HTMLImageElement> & { src: string }) => {
   const [isLoading, setLoading] = useState(true);
   return (
     <img
@@ -284,13 +280,10 @@ export const BlurImage = ({
         className,
       )}
       onLoad={() => setLoading(false)}
-      src={src as string}
-      width={width}
-      height={height}
+      src={src}
       loading="lazy"
       decoding="async"
-      blurDataURL={typeof src === "string" ? src : undefined}
-      alt={alt ? alt : "Background of a beautiful view"}
+      alt={alt || "Background image"}
       {...rest}
     />
   );

@@ -327,6 +327,42 @@ export type Database = {
           },
         ]
       }
+      dcourses: {
+        Row: {
+          course_id: string
+          course_name: string
+          department: string
+          difficulty: string | null
+          duration_hrs: number | null
+          prerequisites: string | null
+          semester: number
+          tags: string | null
+          type: string | null
+        }
+        Insert: {
+          course_id: string
+          course_name: string
+          department: string
+          difficulty?: string | null
+          duration_hrs?: number | null
+          prerequisites?: string | null
+          semester: number
+          tags?: string | null
+          type?: string | null
+        }
+        Update: {
+          course_id?: string
+          course_name?: string
+          department?: string
+          difficulty?: string | null
+          duration_hrs?: number | null
+          prerequisites?: string | null
+          semester?: number
+          tags?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       deadlines: {
         Row: {
           course_name: string

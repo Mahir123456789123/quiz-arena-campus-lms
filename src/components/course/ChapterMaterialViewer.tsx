@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
+import TextToSpeech from "@/components/ui/text-to-speech";
 
 interface ChapterMaterialViewerProps {
   material: any;
@@ -31,7 +32,10 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
       case 'text':
         return (
           <div className="prose max-w-none">
-            <p>{material.content}</p>
+            <div className="flex items-start justify-between gap-4">
+              <p>{material.content}</p>
+              <TextToSpeech text={material.content} />
+            </div>
           </div>
         );
       case 'file':
