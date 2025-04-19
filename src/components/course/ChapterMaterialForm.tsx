@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,27 +34,11 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
 
       // Handle file upload for file and video types
       if ((type === 'file' || type === 'video') && file) {
-        // First, check if the bucket exists, if not, create it
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some(bucket => bucket.name === 'course-materials');
-        
-        if (!bucketExists) {
-          const { error: createBucketError } = await supabase.storage.createBucket('course-materials', {
-            public: true, // Make the bucket public so files can be accessed without authentication
-          });
-          
-          if (createBucketError) {
-            console.error('Error creating bucket:', createBucketError);
-            throw new Error(`Failed to create storage bucket: ${createBucketError.message}`);
-          }
-          console.log('Created course-materials bucket');
-        }
-
         const fileExt = file.name.split('.').pop();
         const fileName = `${chapterId}-${Math.random().toString(36).slice(2)}.${fileExt}`;
         const filePath = `${chapterId}/${fileName}`;
 
-        // Upload file to Supabase Storage
+        // Upload file to Supabase Storage (bucket is already created via SQL)
         const { error: uploadError } = await supabase
           .storage
           .from('course-materials')
