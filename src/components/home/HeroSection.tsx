@@ -28,8 +28,8 @@ const HeroSection = () => {
           </Link> 
         </div>
 
-        {/* Re-enable pointer events for these interactive elements */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
+        
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
           <div className="flex items-center gap-3 p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all pointer-events-auto">
             <BookOpen className="text-blue-400 h-6 w-6" />
             <p className="font-medium">Structured Learning</p>
@@ -42,11 +42,11 @@ const HeroSection = () => {
             <Users className="text-blue-400 h-6 w-6" />
             <p className="font-medium">Community Hub</p>
           </div>
-        </div>
+        </div> */}
       </div>
       
       {/* Top courses heading - re-enable pointer events */}
-      <div className="absolute bottom-8 left-0 right-0 px-4 pointer-events-none">
+      {/* <div className="absolute bottom-8 left-0 right-0 px-4 pointer-events-none">
         <div className="container mx-auto flex justify-between items-center">
           <h2 className="text-3xl font-bold text-white">TOP COURSES</h2>
           <div className="flex gap-2 pointer-events-auto">
@@ -58,7 +58,7 @@ const HeroSection = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </div> */}
     </section>
   );
 };
