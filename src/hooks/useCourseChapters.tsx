@@ -95,7 +95,7 @@ export const useChapterMutations = (courseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['course_chapters', courseId] });
       toast.success('Chapter created successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error('Failed to create chapter');
       console.error(error);
     }
@@ -115,7 +115,7 @@ export const useChapterMutations = (courseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['course_chapters', courseId] });
       toast.success('Chapter deleted successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error('Failed to delete chapter');
       console.error(error);
     }

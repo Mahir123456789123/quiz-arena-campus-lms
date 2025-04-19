@@ -51,7 +51,7 @@ export const useCommentMutations = (courseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['course_comments', courseId] });
       toast.success('Comment posted successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error('Failed to post comment');
       console.error(error);
     }
@@ -71,7 +71,7 @@ export const useCommentMutations = (courseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['course_comments', courseId] });
       toast.success('Comment deleted successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error('Failed to delete comment');
       console.error(error);
     }
