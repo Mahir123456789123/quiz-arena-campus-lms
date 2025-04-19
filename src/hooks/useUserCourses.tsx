@@ -4,50 +4,47 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 
 export const useUserCourses = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useQuery({
     queryKey: ['courses', user?.id],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || !profile) return [];
       
-      // Get user role first
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-        
-      if (profileError) throw profileError;
-      
-      const role = profileData?.role;
-      
-      // Different queries based on role
-      if (role === 'instructor') {
-        // Instructors only see their own courses
+      // Only instructors get their own courses
+      if (profile.role === 'instructor') {
         const { data, error } = await supabase
           .from('courses')
           .select('*')
           .eq('instructor_id', user.id);
           
         if (error) throw error;
-        return data;
+        return data || [];
       } 
-      else if (role === 'admin') {
-        // Admins see all courses
+      // Students need to access courses through enrollments
+      else if (profile.role === 'student') {
+        const { data, error } = await supabase
+          .from('enrollments')
+          .select(`
+            course:courses(*)
+          `)
+          .eq('student_id', user.id);
+          
+        if (error) throw error;
+        return (data || []).map(enrollment => enrollment.course);
+      }
+      // Admins see all courses
+      else if (profile.role === 'admin') {
         const { data, error } = await supabase
           .from('courses')
           .select('*');
           
         if (error) throw error;
-        return data;
+        return data || [];
       }
-      else {
-        // For students, this will be filtered by RLS to only show enrolled courses
-        // This is just a fallback - students should use useEnrollments instead
-        return [];
-      }
+      
+      return [];
     },
-    enabled: !!user,
+    enabled: !!user && !!profile,
   });
 };
