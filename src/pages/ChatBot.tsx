@@ -56,7 +56,7 @@ const ChatBot = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.token}`
+          "Authorization": `Bearer ${user.access_token}`
         },
         body: JSON.stringify({
           message: inputMessage,
