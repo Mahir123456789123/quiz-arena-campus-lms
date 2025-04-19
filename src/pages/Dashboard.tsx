@@ -7,10 +7,11 @@ import AdminDashboard from './admin/AdminDashboard';
 import InstructorDashboard from './instructor/InstructorDashboard';
 import StudentDashboard from './student/StudentDashboard';
 import { toast } from 'sonner';
+import { UserRole } from '@/lib/auth';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,16 +19,36 @@ const Dashboard = () => {
       if (!user) return;
       
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) throw error;
+        // First, check for role in user metadata (set during signup)
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const metadataRole = authUser?.user_metadata?.role as UserRole | undefined;
         
-        console.log("User role from database:", data?.role);
-        setUserRole(data?.role || 'student');
+        if (metadataRole) {
+          console.log("User role from auth metadata:", metadataRole);
+          setUserRole(metadataRole);
+          
+          // Ensure the profile table has the correct role
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ role: metadataRole })
+            .eq('id', user.id);
+            
+          if (updateError) {
+            console.error('Error syncing profile role:', updateError);
+          }
+        } else {
+          // Fallback to checking the profiles table
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+            
+          if (error) throw error;
+          
+          console.log("User role from database:", data?.role);
+          setUserRole(data?.role || 'student');
+        }
       } catch (error) {
         console.error('Error fetching user role:', error);
         toast.error('Error loading your profile');

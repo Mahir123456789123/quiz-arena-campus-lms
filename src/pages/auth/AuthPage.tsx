@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Book } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { UserRole } from '@/lib/auth';
 
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +16,7 @@ const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('student');
+  const [role, setRole] = useState<UserRole>('student');
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -24,7 +25,8 @@ const AuthPage = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        // Sign up the user
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -34,9 +36,25 @@ const AuthPage = () => {
             },
           },
         });
-        if (error) throw error;
+        
+        if (signUpError) throw signUpError;
+        
+        // After successful signup, update the profile with the correct role
+        if (authData.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ role })
+            .eq('id', authData.user.id);
+            
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+            toast.error('Account created but role could not be set properly');
+          }
+        }
+        
         toast.success('Check your email to confirm your account!');
       } else {
+        // Sign in the user
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
