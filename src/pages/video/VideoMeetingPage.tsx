@@ -30,7 +30,7 @@ const VideoMeetingPage = () => {
         mode: ZegoUIKitPrebuilt.GroupCall,
       },
       showTurnOffRemoteCameraButton: true,
-      showTurnOffMicrophoneButton: true,
+      showTurnOffRemoteMicrophoneButton: true,
       showLeaveButton: true,
     });
   };
