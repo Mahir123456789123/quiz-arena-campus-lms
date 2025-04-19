@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,12 @@ interface Question {
   question: string;
   options: string[];
   answer: string;
+}
+
+interface LeaderboardEntry {
+  username: string;
+  score: number;
+  timeTaken: number;
 }
 
 const quizData: Record<string, Question[]> = {
@@ -54,13 +59,6 @@ const quizData: Record<string, Question[]> = {
   ],
   // ... More categories with their questions follow the same pattern
 };
-
-// Mock leaderboard data structure
-interface LeaderboardEntry {
-  username: string;
-  score: number;
-  timeTaken: number;
-}
 
 const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -110,13 +108,8 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
         timeTaken
       };
       
-      // Simulate leaderboard with some mock data
-      setLeaderboard([
-        newEntry,
-        { username: "John Doe", score: Math.floor(Math.random() * questions.length), timeTaken: Math.random() * 300 },
-        { username: "Jane Smith", score: Math.floor(Math.random() * questions.length), timeTaken: Math.random() * 300 },
-        { username: "Alice Johnson", score: Math.floor(Math.random() * questions.length), timeTaken: Math.random() * 300 },
-      ].sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken));
+      // Set leaderboard with only the current user's score
+      setLeaderboard([newEntry].sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken));
     }
   };
 
@@ -139,7 +132,7 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
               <div className="mb-8">
                 <h3 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
                   <Trophy className="h-5 w-5 text-yellow-500" />
-                  Leaderboard
+                  Results
                 </h3>
                 <Table>
                   <TableHeader>
@@ -152,7 +145,7 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
                   </TableHeader>
                   <TableBody>
                     {leaderboard.map((entry, index) => (
-                      <TableRow key={index} className={index === 0 ? "bg-muted/50" : ""}>
+                      <TableRow key={index}>
                         <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell>{entry.username}</TableCell>
                         <TableCell className="text-right">{entry.score}/{questions.length}</TableCell>
