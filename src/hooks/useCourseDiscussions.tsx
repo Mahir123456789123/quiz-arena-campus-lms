@@ -16,7 +16,7 @@ export const useCourseDiscussions = (courseId: string) => {
         .from('course_discussions')
         .select(`
           *,
-          profiles:user_id (full_name, avatar_url)
+          profiles (full_name, avatar_url)
         `)
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
@@ -41,7 +41,7 @@ export const useCourseDiscussions = (courseId: string) => {
         })
         .select(`
           *,
-          profiles:user_id (full_name, avatar_url)
+          profiles (full_name, avatar_url)
         `)
         .single();
 
