@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ async function fetchFeaturedCourses() {
         full_name
       )
     `)
+    .order('created_at', { ascending: false })
     .limit(3);
 
   if (error) throw error;
@@ -30,12 +30,16 @@ const CoursesPreview = () => {
   });
 
   return (
-    <section className="py-20 px-4 md:px-6 bg-gradient-to-b from-background to-muted/30">
+    <section className="py-20 px-4 md:px-6 bg-gradient-to-b from-background via-background to-muted/50">
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-12">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Featured Courses</h2>
-            <p className="text-muted-foreground text-lg">Start your learning journey with these popular courses</p>
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              Featured Courses
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Start your learning journey with these popular courses
+            </p>
           </div>
           <Button asChild variant="outline" className="hidden sm:flex">
             <Link to="/courses" className="gap-2">
@@ -61,10 +65,10 @@ const CoursesPreview = () => {
             ))
           ) : courses.length > 0 ? (
             courses.map((course: any) => (
-              <Card key={course.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300">
-                <div className="h-48 overflow-hidden">
+              <Card key={course.id} className="group hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card to-background border-none">
+                <div className="h-48 overflow-hidden rounded-t-lg">
                   <img 
-                    src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=60" 
+                    src={course.image_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=60"}
                     alt={course.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />

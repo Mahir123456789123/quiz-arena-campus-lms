@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,7 @@ import { BookOpen, Clock, Award, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
+import ProgressGraphs from '@/components/dashboard/ProgressGraphs';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -29,7 +29,6 @@ const StudentDashboard = () => {
     console.log('Attempting to join course with code:', courseCode.trim());
     
     try {
-      // Fetch the course using trimmed code (case insensitive)
       const { data: courses, error: courseError } = await supabase
         .from('courses')
         .select('id, title, code')
@@ -42,7 +41,6 @@ const StudentDashboard = () => {
       
       console.log('Found courses:', courses);
       
-      // Check if any courses were found with this code
       if (!courses || courses.length === 0) {
         toast.error('Course not found. Please check the code and try again.');
         setIsLoading(false);
@@ -52,7 +50,6 @@ const StudentDashboard = () => {
       const course = courses[0];
       console.log('Found course:', course);
 
-      // Check if the user is already enrolled in this course
       const { data: existingEnrollment, error: enrollmentCheckError } = await supabase
         .from('enrollments')
         .select('id')
@@ -72,7 +69,6 @@ const StudentDashboard = () => {
         return;
       }
 
-      // Create the enrollment
       const { error: enrollError } = await supabase
         .from('enrollments')
         .insert({
@@ -98,58 +94,22 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/50">
       <Navbar />
       <main className="flex-1 container py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight">Student Dashboard</h1>
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            Student Dashboard
+          </h1>
           <p className="text-muted-foreground mt-2">Track your progress and manage your courses</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-80">Enrolled Courses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{enrollments.length}</div>
-              <BookOpen className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-80">Hours Studied</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">24</div>
-              <Clock className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-80">Completed Courses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">3</div>
-              <Award className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-80">Average Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">85%</div>
-              <BarChart3 className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
-            </CardContent>
-          </Card>
+        <div className="grid gap-6 mb-8">
+          <ProgressGraphs />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <BookOpen className="h-5 w-5 text-primary" />
@@ -158,14 +118,12 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleJoinCourse} className="space-y-4">
-                <div>
-                  <Input
-                    value={courseCode}
-                    onChange={(e) => setCourseCode(e.target.value)}
-                    placeholder="Enter course code"
-                    className="w-full"
-                  />
-                </div>
+                <Input
+                  value={courseCode}
+                  onChange={(e) => setCourseCode(e.target.value)}
+                  placeholder="Enter course code"
+                  className="w-full bg-background/50 border-muted"
+                />
                 <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? 'Joining...' : 'Join Course'}
                 </Button>
@@ -174,7 +132,7 @@ const StudentDashboard = () => {
           </Card>
 
           {enrollments.length > 0 && (
-            <Card>
+            <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <BookOpen className="h-5 w-5 text-primary" />
@@ -183,7 +141,7 @@ const StudentDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {enrollments.map((enrollment: any) => (
-                  <Card key={enrollment.id} className="hover:shadow-md transition-shadow">
+                  <Card key={enrollment.id} className="bg-background/50 hover:shadow-md transition-shadow border-muted">
                     <CardHeader className="p-4">
                       <CardTitle className="text-base font-medium">{enrollment.course.title}</CardTitle>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{enrollment.course.description}</p>
