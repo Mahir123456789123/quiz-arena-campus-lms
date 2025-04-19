@@ -36,13 +36,14 @@ export const BoxesCore = ({ className }: { className?: string }) => {
             <motion.div
               whileHover={{
                 backgroundColor: getRandomColor(),
-                transition: { duration: 0 },
+                boxShadow: "0 0 20px rgba(255,255,255,0.4)",
+                transition: { duration: 0.1 },
               }}
               animate={{
                 transition: { duration: 2 },
               }}
               key={`col-${j}`}
-              className="relative h-8 w-16 border-t border-r border-slate-700 backdrop-blur-sm"
+              className="relative h-8 w-16 border-t border-r border-slate-700 backdrop-blur-sm transition-all duration-300 hover:z-50"
             >
               {j % 2 === 0 && i % 2 === 0 ? (
                 <svg
@@ -60,6 +61,14 @@ export const BoxesCore = ({ className }: { className?: string }) => {
                   />
                 </svg>
               ) : null}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileHover={{ 
+                  opacity: 1,
+                  transition: { duration: 0.1 }
+                }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              />
             </motion.div>
           ))}
         </motion.div>
