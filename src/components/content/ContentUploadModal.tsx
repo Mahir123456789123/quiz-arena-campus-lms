@@ -21,7 +21,7 @@ interface ContentUploadModalProps {
 }
 
 const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSuccess }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -62,7 +62,7 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
         .insert({
           title: formData.title,
           author_id: user.id,
-          author_name: user.email || 'Unknown Author',
+          author_name: profile?.full_name || user.email || 'Unknown Author',
           type: formData.type,
           subject: formData.subject,
           article_snippet: formData.articleSnippet,
