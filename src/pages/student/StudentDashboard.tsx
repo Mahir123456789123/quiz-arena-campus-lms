@@ -115,6 +115,7 @@ const StudentDashboard = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
+          <DeadlinesCalendar />
           {enrollments.length > 0 && (
             <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
               <CardHeader>
