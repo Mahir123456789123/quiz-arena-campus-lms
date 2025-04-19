@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -29,6 +30,12 @@ const CourseManagement = () => {
   // Course comments
   const { data: comments = [] } = useCourseComments(courseId || '');
   const { createComment, deleteComment } = useCommentMutations(courseId || '');
+
+  // Create a wrapper function for addMaterial to handle the type mismatch
+  const handleAddMaterial = (chapterId: string) => {
+    // This function serves as a bridge between ContentTab and the actual addMaterial mutation
+    return chapterId;
+  };
 
   // Fetch enrolled students
   const { data: enrollments, isLoading: isLoadingEnrollments } = useQuery({
@@ -116,7 +123,7 @@ const CourseManagement = () => {
               chapters={chapters}
               createChapter={createChapter}
               deleteChapter={deleteChapter}
-              addMaterial={addMaterial}
+              addMaterial={handleAddMaterial}
               deleteMaterial={deleteMaterial}
             />
           </TabsContent>

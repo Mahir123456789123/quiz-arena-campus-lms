@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,6 @@ const ContentTab = ({
   const handleAddMaterial = (chapterId: string) => {
     setActiveChapter(chapterId);
     setShowMaterialForm(true);
-    addMaterial(chapterId);
   };
 
   return (
