@@ -1,10 +1,11 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Book, Search, User, LogOut } from "lucide-react";
+import { Bell, Book, Search, User, LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/hooks/useTheme";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import {
 const Navbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -54,6 +56,10 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-foreground/70 hover:text-foreground">
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          
           <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground">
             <Search className="h-5 w-5" />
           </Button>
