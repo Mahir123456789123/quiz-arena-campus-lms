@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Quiz, QuizQuestion, QuizRoom, QuizParticipant } from '@/types/quiz';
+import QuizSocket from './QuizSocket';
 
 interface QuizTakingProps {
   roomId: string;
@@ -510,40 +510,9 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
                     <p className="text-lg mb-8">Your Score: {score} / {questions.length}</p>
                   )}
                   
-                  <div className="bg-muted p-6 rounded-lg max-w-lg mx-auto mb-8">
-                    <div className="flex items-center justify-center mb-4">
-                      <Trophy className="h-8 w-8 text-yellow-500 mr-2" />
-                      <h3 className="text-xl font-bold">Leaderboard</h3>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {sortedParticipants.length > 0 ? (
-                        sortedParticipants.map((participant, index) => (
-                          <div 
-                            key={participant.id} 
-                            className={`flex items-center justify-between p-3 rounded-md ${
-                              index === 0 ? 'bg-yellow-100 dark:bg-yellow-900/20' : 
-                              index === 1 ? 'bg-gray-100 dark:bg-gray-800' : 
-                              index === 2 ? 'bg-amber-100 dark:bg-amber-900/20' : ''
-                            } ${participant.user_id === user?.id ? 'border-2 border-primary' : ''}`}
-                          >
-                            <div className="flex items-center">
-                              <span className="font-bold w-8">{index + 1}.</span>
-                              <span>{participant.profile?.full_name || 'Unknown'}</span>
-                              {participant.user_id === user?.id && (
-                                <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">You</span>
-                              )}
-                            </div>
-                            <span className="font-bold">{participant.score} pts</span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-center text-muted-foreground">No participants yet</p>
-                      )}
-                    </div>
-                  </div>
+                  <QuizSocket roomId={roomId} />
                   
-                  <Button onClick={() => navigate('/quiz-battles')} variant="outline">
+                  <Button onClick={() => navigate('/quiz-battles')} variant="outline" className="mt-6">
                     Back to Quiz Battles
                   </Button>
                 </div>
