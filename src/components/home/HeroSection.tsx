@@ -3,19 +3,25 @@ import { ArrowRight, BookOpen, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SlideArrowButton from "@/components/ui/slide-arrow-button";
 import { Boxes } from "@/components/ui/background-boxes";
+import { TypewriterEffect } from "@/components/ui/typewriter-effect";
+
 
 const HeroSection = () => {
   return (
-    <section className="relative bg-gradient-to-b from-slate-950 to-slate-900 h-screen flex items-center overflow-hidden">
+    <section id="hero" className="relative bg-gradient-to-b from-slate-950 to-slate-900 h-screen flex items-center overflow-hidden">
       {/* Boxes Background */}
       <Boxes className="opacity-500" />
       
       {/* Content container with pointer-events-none to allow clicks to reach the boxes */}
       <div className="container relative z-10 mx-auto px-4 text-center text-white pointer-events-none">
-        <h1 className="text-4xl md:text-6xl font-bold mb-8">
-          <span className="text-white">Learn, Compete, </span>
-          <span className="text-blue-400">Excel</span>
-        </h1>
+      <TypewriterEffect className="text-4xl md:text-6xl mb-8" cursorClassName="bg-blue-400"
+        words={[
+          { text: "Learn,", className: "text-white" },
+          { text: "Compete,", className: "text-white" },
+          { text: "Excel", className: "text-blue-400" },
+        ]}
+      />
+
 
         <p className="text-xl md:text-2xl font-medium text-blue-200 mb-12 max-w-3xl mx-auto">
           Making education engaging, structured, and competitive.

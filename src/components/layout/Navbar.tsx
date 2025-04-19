@@ -20,6 +20,13 @@ const Navbar = () => {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  const scrollToHero = () => {
+    const heroElement = document.getElementById('hero');
+    if (heroElement) {
+      heroElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+  
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -30,14 +37,28 @@ const Navbar = () => {
     }
   };
 
+  const handlePadhleBhaiClick = (e) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/#hero');
+    } else {
+      scrollToHero();
+    }
+  };
+
   return (
     <header className="bg-card sticky top-0 z-50 shadow-sm border-b">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <Book className="h-6 w-6 text-edu-primary" />
-            <span className="text-xl font-bold text-foreground">PadhleBhai</span>
-          </Link>
+        <a
+  href="#hero"
+  onClick={handlePadhleBhaiClick}
+  className="flex items-center gap-2"
+>
+  <Book className="h-6 w-6 text-edu-primary" />
+  <span className="text-xl font-bold text-foreground">PadhleBhai</span>
+</a>
+
         </div>
 
         <div className="hidden md:flex items-center space-x-6">
