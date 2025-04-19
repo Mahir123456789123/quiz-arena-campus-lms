@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -16,7 +15,7 @@ const InstructorQuizCreator = () => {
   const [description, setDescription] = useState('');
   const [timeLimit, setTimeLimit] = useState(15);
   const [difficulty, setDifficulty] = useState<Quiz['difficulty']>('medium');
-  const [questions, setQuestions] = useState<Partial<QuizQuestion>[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
 
   const handleAddQuestion = () => {
     setQuestions([
@@ -33,6 +32,12 @@ const InstructorQuizCreator = () => {
 
   const handleCreateQuiz = async () => {
     try {
+      // Validate inputs
+      if (questions.length === 0) {
+        toast.error('Please add at least one question');
+        return;
+      }
+
       // First create the quiz
       const { data: quiz, error: quizError } = await supabase
         .from('quizzes')
@@ -51,12 +56,17 @@ const InstructorQuizCreator = () => {
 
       if (quizError) throw quizError;
 
-      // Then create all questions
+      // Prepare questions with quiz_id
       const questionsWithQuizId = questions.map(q => ({
-        ...q,
-        quiz_id: quiz.id
+        quiz_id: quiz.id,
+        question_text: q.question_text,
+        options: q.options,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation || null,
+        order_position: q.order_position
       }));
 
+      // Then create all questions
       const { error: questionsError } = await supabase
         .from('quiz_questions')
         .insert(questionsWithQuizId);

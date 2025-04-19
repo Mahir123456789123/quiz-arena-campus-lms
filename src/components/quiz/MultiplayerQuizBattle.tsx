@@ -29,7 +29,13 @@ const MultiplayerQuizBattle = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAvailableQuizzes(data || []);
+      
+      const typeSafeQuizzes = data.map(quiz => ({
+        ...quiz,
+        difficulty: quiz.difficulty as Quiz['difficulty']
+      }));
+      
+      setAvailableQuizzes(typeSafeQuizzes);
     } catch (error: any) {
       toast.error('Failed to load quizzes');
       console.error(error);
@@ -46,7 +52,13 @@ const MultiplayerQuizBattle = () => {
         .limit(10);
 
       if (error) throw error;
-      setActiveRooms(data || []);
+      
+      const typeSafeRooms = data.map(room => ({
+        ...room,
+        status: room.status as QuizRoom['status']
+      }));
+      
+      setActiveRooms(typeSafeRooms);
     } catch (error: any) {
       toast.error('Failed to load active rooms');
       console.error(error);
@@ -61,7 +73,7 @@ const MultiplayerQuizBattle = () => {
 
     setIsLoading(true);
     try {
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const code = Math.floor(100 + Math.random() * 900).toString();
       
       const { data: room, error } = await supabase
         .from('quiz_rooms')
