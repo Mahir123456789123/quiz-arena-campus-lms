@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,7 @@ const ChatBot = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.session?.access_token}`
+          "Authorization": `Bearer ${user.access_token}`
         },
         body: JSON.stringify({
           message: inputMessage,
