@@ -29,7 +29,7 @@ const VideoMeetingPage = () => {
       scenario: {
         mode: ZegoUIKitPrebuilt.GroupCall,
       },
-      showTurnOffCameraButton: true,
+      showTurnOffRemoteCameraButton: true,
       showTurnOffMicrophoneButton: true,
       showLeaveButton: true,
     });

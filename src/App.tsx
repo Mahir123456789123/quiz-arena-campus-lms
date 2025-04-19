@@ -26,7 +26,7 @@ import TermsOfService from "./pages/TermsOfService";
 import NotificationsPage from "./pages/NotificationsPage";
 import SearchResults from "./pages/SearchResults";
 import HeroSection from "./components/home/HeroSection";
-import VideoMeetingPage from "./pages/VideoMeetingPage";
+import VideoMeetingPage from "./pages/video/VideoMeetingPage";
 
 const queryClient = new QueryClient();
 
