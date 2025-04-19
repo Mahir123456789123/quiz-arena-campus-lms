@@ -6,7 +6,7 @@ import { Boxes } from "@/components/ui/background-boxes";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[80vh] px-4 md:px-6">
+    <section className="relative min-h-screen px-4 md:px-6">
       <div className="absolute inset-0 w-full h-full bg-slate-950 overflow-hidden">
         <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-slate-950 via-slate-900/50 to-slate-900/10 z-20" />
         <div className="absolute inset-0 w-full h-full z-10">
@@ -15,7 +15,7 @@ const HeroSection = () => {
       </div>
       
       <div className="container mx-auto relative z-30">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-[80vh]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-screen">
           <div className="flex flex-col gap-6 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
               Learn, Compete, <span className="text-edu-primary">Excel</span>
@@ -34,17 +34,17 @@ const HeroSection = () => {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-card shadow-sm">
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
                 <BookOpen className="text-edu-primary h-6 w-6" />
-                <p className="font-medium">Structured Learning</p>
+                <p className="font-medium text-white">Structured Learning</p>
               </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-card shadow-sm">
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
                 <Trophy className="text-edu-primary h-6 w-6" />
-                <p className="font-medium">Quiz Battles</p>
+                <p className="font-medium text-white">Quiz Battles</p>
               </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-card shadow-sm">
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
                 <Users className="text-edu-primary h-6 w-6" />
-                <p className="font-medium">Community Hub</p>
+                <p className="font-medium text-white">Community Hub</p>
               </div>
             </div>
           </div>
