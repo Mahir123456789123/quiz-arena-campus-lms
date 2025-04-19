@@ -1,0 +1,101 @@
+room,question,option1,option2,option3,option4,answer
+Operating Systems,Which scheduling algorithm uses first-come-first-served?,FCFS,Priority Scheduling,Shortest Job First,Round Robin,1
+Operating Systems,What is the main purpose of the file system?,Memory allocation,Process management,User interface,I/O operations,3
+Operating Systems,"In set operations, what does mutex refer to?",Memory page,File descriptor,Process state,Kernel structure,1
+Operating Systems,Which scheduling algorithm uses priority-based?,FCFS,Round Robin,Shortest Job First,Priority Scheduling,1
+Operating Systems,What is the main purpose of the memory manager?,Process management,I/O operations,User interface,Memory allocation,2
+Operating Systems,"In graph theory, what does page table refer to?",Process state,Kernel structure,File descriptor,Memory page,1
+Operating Systems,What is the main purpose of the file system?,I/O operations,User interface,Process management,Memory allocation,2
+Operating Systems,What is the main purpose of the memory manager?,Memory allocation,User interface,Process management,I/O operations,2
+Operating Systems,"In binary relations, what does semaphore refer to?",Kernel structure,Memory page,Process state,File descriptor,2
+Operating Systems,"In binary relations, what does semaphore refer to?",Kernel structure,Memory page,Process state,File descriptor,2
+Algorithms,What is the time complexity of Quick Sort?,O(n log n),O(log n),O(n),O(1),3
+Algorithms,Which algorithm uses strict phases approach?,Dynamic Programming,Greedy,Backtracking,Divide and Conquer,1
+Algorithms,What data structure is optimal for deletion?,Stack,Hash Table,Binary Tree,Graph,3
+Algorithms,What data structure is optimal for deletion?,Hash Table,Stack,Graph,Binary Tree,1
+Algorithms,What data structure is optimal for search?,Binary Tree,Graph,Hash Table,Stack,2
+Algorithms,What is the time complexity of Quick Sort?,O(n log n),O(n),O(1),O(log n),4
+Algorithms,What data structure is optimal for insertion?,Hash Table,Binary Tree,Graph,Stack,1
+Algorithms,What is the time complexity of Merge Sort?,O(n),O(log n),O(n log n),O(1),3
+Algorithms,What data structure is optimal for search?,Binary Tree,Hash Table,Stack,Graph,4
+Algorithms,Which algorithm uses risk analysis approach?,Backtracking,Divide and Conquer,Greedy,Dynamic Programming,4
+Computer Networks,Which layer handles routing in the OSI model?,Transport,Physical,Data Link,Network,4
+Computer Networks,Which layer handles routing in the OSI model?,Data Link,Transport,Network,Physical,4
+Computer Networks,Which layer handles reliable delivery in the OSI model?,Data Link,Network,Physical,Transport,2
+Computer Networks,What does UDP stand for?,File Transfer Protocol,Transmission Control Protocol,Internet Protocol,User Datagram Protocol,2
+Computer Networks,What does UDP stand for?,Internet Protocol,File Transfer Protocol,User Datagram Protocol,Transmission Control Protocol,4
+Computer Networks,What does TCP stand for?,File Transfer Protocol,User Datagram Protocol,Transmission Control Protocol,Internet Protocol,2
+Computer Networks,Which layer handles routing in the OSI model?,Physical,Transport,Network,Data Link,3
+Computer Networks,What does UDP stand for?,File Transfer Protocol,Internet Protocol,Transmission Control Protocol,User Datagram Protocol,1
+Computer Networks,What protocol is used for web browsing?,HTTP,TCP,UDP,FTP,4
+Computer Networks,What does UDP stand for?,Internet Protocol,Transmission Control Protocol,User Datagram Protocol,File Transfer Protocol,3
+Data Structures,Which data structure is best for priority queues?,Queue,Graph,Hash Table,Binary Search Tree,2
+Data Structures,Which data structure is best for symbol tables?,Hash Table,Queue,Graph,Binary Search Tree,3
+Data Structures,Which data structure is best for symbol tables?,Queue,Hash Table,Graph,Binary Search Tree,2
+Data Structures,What is the worst-case time for insertion in Hash Table?,O(n log n),O(log n),O(1),O(n),3
+Data Structures,What is the worst-case time for search in Linked List?,O(n),O(log n),O(1),O(n log n),4
+Data Structures,Which structure uses LIFO principle?,FIFO,Hierarchical,Graph-based,LIFO,2
+Data Structures,What is the worst-case time for insertion in Linked List?,O(n log n),O(n),O(1),O(log n),4
+Data Structures,Which structure uses LIFO principle?,Hierarchical,Graph-based,LIFO,FIFO,1
+Data Structures,Which data structure is best for network routing?,Queue,Binary Search Tree,Graph,Hash Table,2
+Data Structures,What is the worst-case time for search in Linked List?,O(n log n),O(log n),O(1),O(n),3
+Python Programming,What does .format() do in Python?,List manipulation,File I/O,String formatting,Exception handling,2
+Python Programming,Which module is used for email?,math,os,sys,datetime,1
+Python Programming,What does try-except do in Python?,Exception handling,File I/O,String formatting,List manipulation,3
+Python Programming,What does .format() do in Python?,List manipulation,File I/O,String formatting,Exception handling,1
+Python Programming,What does .format() do in Python?,File I/O,Exception handling,List manipulation,String formatting,4
+Python Programming,What does .format() do in Python?,String formatting,List manipulation,Exception handling,File I/O,1
+Python Programming,"What is the output of len([1,2,3])?",Expected output,TypeError,Error,None,4
+Python Programming,Which module is used for web browsing?,os,datetime,sys,math,3
+Python Programming,What does open() do in Python?,List manipulation,String formatting,Exception handling,File I/O,3
+Python Programming,Which module is used for web browsing?,sys,math,datetime,os,4
+Database Management,Which command is used for search?,UPDATE,SELECT,DELETE,ALTER,2
+Database Management,Which command is used for deletion?,UPDATE,SELECT,DELETE,ALTER,1
+Database Management,Which command is used for search?,SELECT,UPDATE,DELETE,ALTER,4
+Database Management,Which normal form addresses partial dependencies?,1NF,2NF,BCNF,3NF,2
+Database Management,What does semaphore mean in SQL?,VIEW,TRIGGER,JOIN,INDEX,4
+Database Management,Which command is used for insertion?,ALTER,DELETE,SELECT,UPDATE,4
+Database Management,Which command is used for insertion?,ALTER,DELETE,SELECT,UPDATE,4
+Database Management,Which normal form addresses multi-valued dependencies?,2NF,3NF,BCNF,1NF,3
+Database Management,Which command is used for insertion?,SELECT,ALTER,DELETE,UPDATE,4
+Database Management,Which command is used for deletion?,SELECT,UPDATE,ALTER,DELETE,1
+Discrete Mathematics,Which binary relations is used for system design?,Logic,Combinatorics,Graph Theory,Set Theory,3
+Discrete Mathematics,What is the associative of binary relations?,Distributive,Identity,Commutative,Associative,1
+Discrete Mathematics,Which binary relations is used for system design?,Set Theory,Graph Theory,Combinatorics,Logic,4
+Discrete Mathematics,What is the distributive of binary relations?,Commutative,Associative,Distributive,Identity,4
+Discrete Mathematics,Which binary relations is used for database optimization?,Set Theory,Graph Theory,Logic,Combinatorics,4
+Discrete Mathematics,Which graph theory is used for database optimization?,Logic,Graph Theory,Set Theory,Combinatorics,1
+Discrete Mathematics,What is the distributive of graph theory?,Identity,Distributive,Associative,Commutative,1
+Discrete Mathematics,Which binary relations is used for network analysis?,Graph Theory,Logic,Set Theory,Combinatorics,4
+Discrete Mathematics,What is the distributive of set operations?,Commutative,Identity,Associative,Distributive,2
+Discrete Mathematics,Which set operations is used for network analysis?,Logic,Set Theory,Combinatorics,Graph Theory,3
+Computer Organization,Which architecture uses stored program?,Harvard,CISC,Von Neumann,RISC,1
+Computer Organization,What is the function of scheduler?,Cache,Control Unit,Register,ALU,3
+Computer Organization,What is the function of file system?,ALU,Cache,Control Unit,Register,4
+Computer Organization,What is the function of file system?,Control Unit,Register,ALU,Cache,4
+Computer Organization,What is the function of scheduler?,Cache,ALU,Register,Control Unit,4
+Computer Organization,Which architecture uses stored program?,CISC,RISC,Harvard,Von Neumann,3
+Computer Organization,Which architecture uses stored program?,Von Neumann,RISC,Harvard,CISC,2
+Computer Organization,Which architecture uses separate data/cache?,Harvard,CISC,Von Neumann,RISC,3
+Computer Organization,Which architecture uses reduced instruction set?,Von Neumann,Harvard,CISC,RISC,3
+Computer Organization,What is the function of file system?,ALU,Cache,Control Unit,Register,3
+Software Engineering,Which methodology uses iterative development?,Spiral,Agile,Waterfall,DevOps,3
+Software Engineering,Which methodology uses iterative development?,Waterfall,Spiral,Agile,DevOps,3
+Software Engineering,Which methodology uses risk analysis?,DevOps,Agile,Waterfall,Spiral,3
+Software Engineering,What is the purpose of use case diagram?,UML Diagram,Code Review,Test Cases,SRS Document,1
+Software Engineering,Which methodology uses risk analysis?,Spiral,Waterfall,Agile,DevOps,4
+Software Engineering,Which methodology uses risk analysis?,Agile,Waterfall,Spiral,DevOps,1
+Software Engineering,Which methodology uses strict phases?,Spiral,DevOps,Agile,Waterfall,2
+Software Engineering,What is the purpose of class diagram?,SRS Document,Test Cases,Code Review,UML Diagram,4
+Software Engineering,Which methodology uses strict phases?,DevOps,Spiral,Agile,Waterfall,2
+Software Engineering,Which methodology uses iterative development?,Waterfall,Spiral,Agile,DevOps,3
+Theory of Computation,What is the complexity class of halting problem?,NP,P,Undecidable,NP-Complete,4
+Theory of Computation,What is the complexity class of sorting?,P,Undecidable,NP,NP-Complete,4
+Theory of Computation,Which automaton recognizes regular?,Turing Machine,NFA,DFA,PDA,4
+Theory of Computation,What is the complexity class of halting problem?,Undecidable,P,NP-Complete,NP,1
+Theory of Computation,What is the complexity class of halting problem?,NP,Undecidable,P,NP-Complete,4
+Theory of Computation,What is the complexity class of sorting?,P,Undecidable,NP-Complete,NP,3
+Theory of Computation,What is the complexity class of traveling salesman?,NP-Complete,NP,Undecidable,P,2
+Theory of Computation,Which automaton recognizes regular?,DFA,Turing Machine,PDA,NFA,1
+Theory of Computation,Which automaton recognizes regular?,NFA,Turing Machine,DFA,PDA,1
+Theory of Computation,Which automaton recognizes recursive?,NFA,PDA,DFA,Turing Machine,1
