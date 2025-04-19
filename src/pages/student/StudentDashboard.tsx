@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import ProgressGraphs from '@/components/dashboard/ProgressGraphs';
 import { DeadlinesCalendar } from '@/components/dashboard/DeadlinesCalendar';
+import PomodoroTimer from '@/components/dashboard/PomodoroTimer';
+import TodoList from '@/components/dashboard/TodoList';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -86,12 +88,9 @@ const StudentDashboard = () => {
           <p className="text-muted-foreground mt-2">Track your progress and manage your courses</p>
         </div>
 
-        <div className="grid gap-6 mb-8">
-          <DeadlinesCalendar />
-          <ProgressGraphs />
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          <PomodoroTimer />
+          <TodoList />
           <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
@@ -113,7 +112,9 @@ const StudentDashboard = () => {
               </form>
             </CardContent>
           </Card>
+        </div>
 
+        <div className="grid gap-6 md:grid-cols-2">
           {enrollments.length > 0 && (
             <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
               <CardHeader>
