@@ -1,9 +1,19 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, FileVideo, File, ExternalLink } from 'lucide-react';
+import { FileText, FileVideo, File, ExternalLink, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 
 interface ChapterMaterialViewerProps {
   material: any;
@@ -12,6 +22,19 @@ interface ChapterMaterialViewerProps {
 
 const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProps) => {
   if (!material) return null;
+
+  // Handle file download
+  const downloadFile = () => {
+    if (material.url) {
+      const link = document.createElement('a');
+      link.href = material.url;
+      link.target = '_blank';
+      link.download = material.title || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
     <Card className="mb-4">
@@ -68,11 +91,16 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
         {material.type === 'file' && (
           <div className="flex justify-between items-center">
             <span className="text-sm">Document</span>
-            <Button variant="outline" size="sm" asChild>
-              <a href={material.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                <ExternalLink className="h-4 w-4" /> View
-              </a>
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <a href={material.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                  <ExternalLink className="h-4 w-4" /> View
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" onClick={downloadFile} className="flex items-center gap-1">
+                <Download className="h-4 w-4" /> Download
+              </Button>
+            </div>
           </div>
         )}
         
