@@ -4,7 +4,6 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
-import { Boxes } from "@/components/ui/background-boxes";
 import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
@@ -28,7 +27,6 @@ const ChatBot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -36,9 +34,8 @@ const ChatBot = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputMessage.trim() || !user) return;
+    if (!inputMessage.trim() || !user?.id) return;
     
-    // Add user message to chat
     const newUserMessage: Message = {
       id: Date.now().toString(),
       text: inputMessage,
@@ -51,12 +48,11 @@ const ChatBot = () => {
     setIsLoading(true);
     
     try {
-      // Call Supabase Edge Function for chatbot response
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chatbot`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.session?.access_token}`
+          "Authorization": `Bearer ${user.access_token}`
         },
         body: JSON.stringify({
           message: inputMessage,
@@ -70,7 +66,6 @@ const ChatBot = () => {
       
       const data = await response.json();
       
-      // Add bot response to chat and save to Supabase
       const newBotMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: data.response,
@@ -78,7 +73,6 @@ const ChatBot = () => {
         timestamp: new Date(),
       };
       
-      // Save messages to Supabase
       await supabase.from('chat_messages').insert([
         { 
           user_id: user.id, 
@@ -110,64 +104,61 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950 flex flex-col">
-      <div className="absolute inset-0 w-full h-full z-10">
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-slate-950 via-slate-900/50 to-slate-900/10 z-20" />
-        <Boxes />
+    <div className="flex flex-col h-full bg-gradient-to-br from-[#F97316]/5 via-[#D946EF]/5 to-[#8B5CF6]/5">
+      <div className="p-4 border-b">
+        <h2 className="font-semibold text-lg">AI Assistant</h2>
       </div>
       
-      <div className="container mx-auto flex flex-col h-screen p-4 relative z-30">
-        <div className="flex-1 overflow-y-auto mb-4 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.isUser ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[75%] rounded-lg p-3 ${
-                    message.isUser
-                      ? "bg-edu-primary text-white"
-                      : "bg-white/10 text-white"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.text}</p>
-                  <p className="text-xs mt-1 opacity-70">
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${
+              message.isUser ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`max-w-[75%] rounded-lg p-3 ${
+                message.isUser
+                  ? "bg-gradient-to-r from-[#F97316] to-[#D946EF] text-white"
+                  : "bg-white/10 text-foreground"
+              }`}
+            >
+              <p className="whitespace-pre-wrap">{message.text}</p>
+              <p className="text-xs mt-1 opacity-70">
+                {message.timestamp.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
           </div>
-        </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
 
-        <form
-          onSubmit={handleSendMessage}
-          className="flex gap-2 backdrop-blur-sm bg-white/5 border border-white/10 p-2 rounded-lg"
-        >
+      <form
+        onSubmit={handleSendMessage}
+        className="p-4 border-t bg-background/50 backdrop-blur-sm"
+      >
+        <div className="flex gap-2">
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Type your message..."
-            className="bg-transparent border-white/10 text-white focus-visible:ring-edu-primary"
+            className="bg-transparent border-white/20"
             disabled={isLoading}
           />
           <Button
             type="submit"
             size="icon"
             disabled={isLoading}
-            className="bg-edu-primary hover:bg-edu-primary/80"
+            className="bg-gradient-to-r from-[#F97316] to-[#D946EF] text-white hover:opacity-90"
           >
             <Send className="h-5 w-5" />
           </Button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 };
