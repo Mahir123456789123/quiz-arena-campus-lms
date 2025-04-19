@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
 import TextToSpeech from "@/components/ui/text-to-speech";
+import StudyMaterial from "@/components/ui/study-material";
 
 interface ChapterMaterialViewerProps {
   material: any;
@@ -196,6 +197,10 @@ const ChapterMaterialViewer = ({
       </CardHeader>
       <CardContent>
         {renderMaterialContent()}
+        
+        {material.type === 'text' && (
+          <StudyMaterial topic={material.title} />
+        )}
 
         {!isCompleted && onComplete && (
           <div className="mt-4 flex justify-end">
