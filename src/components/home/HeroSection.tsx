@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,9 +7,11 @@ import { Boxes } from "@/components/ui/background-boxes";
 const HeroSection = () => {
   return (
     <section className="relative min-h-[80vh] px-4 md:px-6">
-      <div className="absolute inset-0 w-full h-full bg-slate-900 overflow-hidden">
-        <div className="absolute inset-0 w-full h-full bg-slate-900 z-20 [mask-image:radial-gradient(transparent,white)] pointer-events-none" />
-        <Boxes />
+      <div className="absolute inset-0 w-full h-full bg-slate-950 overflow-hidden">
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-slate-950 via-slate-900/50 to-slate-900/10 z-20" />
+        <div className="absolute inset-0 w-full h-full z-10">
+          <Boxes />
+        </div>
       </div>
       
       <div className="container mx-auto relative z-30">
