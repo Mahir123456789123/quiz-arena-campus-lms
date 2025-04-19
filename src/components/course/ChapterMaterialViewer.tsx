@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,25 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionContent, setSubmissionContent] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [submissions, setSubmissions] = useState<any[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
+  };
+
+  const renderYouTubeVideo = (url: string) => {
+    return (
+      <div className="relative pt-[56.25%] mt-4">
+        <iframe
+          src={url}
+          className="absolute inset-0 w-full h-full rounded-lg"
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    );
   };
 
   const renderMaterialContent = () => {
@@ -36,6 +50,28 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
               <p>{material.content}</p>
               <TextToSpeech text={material.content} />
             </div>
+          </div>
+        );
+      case 'video':
+        return (
+          <div>
+            {material.url ? (
+              renderYouTubeVideo(material.url)
+            ) : (
+              <div className="flex items-center gap-2">
+                <FileVideo className="h-5 w-5" />
+                <span className="text-muted-foreground">Video URL not available</span>
+              </div>
+            )}
+            {material.content && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Video Description</h4>
+                <p className="text-sm text-muted-foreground">{material.content}</p>
+                <div className="mt-2">
+                  <TextToSpeech text={material.content} />
+                </div>
+              </div>
+            )}
           </div>
         );
       case 'file':
@@ -51,19 +87,6 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
               <span>View Document</span>
               <LinkIcon className="h-4 w-4" />
             </a>
-          </div>
-        );
-      case 'video':
-        return (
-          <div className="mt-4">
-            <div className="relative pt-[56.25%]">
-              <iframe
-                src={material.url}
-                className="absolute inset-0 w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
           </div>
         );
       default:
