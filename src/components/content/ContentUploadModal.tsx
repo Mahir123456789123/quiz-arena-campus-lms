@@ -42,7 +42,7 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
       if (formData.file) {
         const fileExt = formData.file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
+        const { data: fileData, error: uploadError } = await supabase.storage
           .from('content')
           .upload(fileName, formData.file);
 
@@ -61,7 +61,10 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
           subject: formData.subject,
           article_snippet: formData.articleSnippet,
           file_path: filePath,
-          is_published: true
+          is_published: true,
+          views: 0,
+          rating: 0,
+          date: new Date().toISOString()
         });
 
       if (insertError) throw insertError;
@@ -77,41 +80,43 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-xl max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4">Upload Content</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-card dark:bg-card p-6 rounded-xl max-w-md w-full shadow-xl border dark:border-gray-700">
+        <h2 className="text-xl font-bold mb-4 text-foreground">Upload Content</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title" className="text-foreground">Title</Label>
             <Input
               id="title"
               required
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="bg-background text-foreground border-input"
             />
           </div>
 
           <div>
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="subject" className="text-foreground">Subject</Label>
             <Input
               id="subject"
               required
               value={formData.subject}
               onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+              className="bg-background text-foreground border-input"
             />
           </div>
 
           <div>
-            <Label htmlFor="type">Content Type</Label>
+            <Label htmlFor="type" className="text-foreground">Content Type</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
             >
-              <SelectTrigger>
+              <SelectTrigger id="type" className="bg-background text-foreground border-input">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover text-popover-foreground">
                 <SelectItem value="video">Video</SelectItem>
                 <SelectItem value="ppt">Presentation</SelectItem>
                 <SelectItem value="article">Article</SelectItem>
@@ -121,29 +126,40 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
 
           {formData.type === 'article' && (
             <div>
-              <Label htmlFor="snippet">Article Snippet</Label>
+              <Label htmlFor="snippet" className="text-foreground">Article Snippet</Label>
               <Textarea
                 id="snippet"
                 value={formData.articleSnippet}
                 onChange={(e) => setFormData(prev => ({ ...prev, articleSnippet: e.target.value }))}
+                className="bg-background text-foreground border-input"
               />
             </div>
           )}
 
           <div>
-            <Label htmlFor="file">File Upload</Label>
+            <Label htmlFor="file" className="text-foreground">File Upload</Label>
             <Input
               id="file"
               type="file"
               onChange={(e) => setFormData(prev => ({ ...prev, file: e.target.files?.[0] || null }))}
+              className="bg-background text-foreground border-input"
             />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="border-input text-foreground hover:bg-secondary"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isUploading}>
+            <Button 
+              type="submit" 
+              disabled={isUploading}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               {isUploading ? 'Uploading...' : 'Upload'}
             </Button>
           </div>

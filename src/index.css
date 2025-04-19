@@ -93,6 +93,15 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom star rating styling for dark mode */
+  .star {
+    @apply text-xl;
+  }
+
+  .dark .star {
+    color: #FFD700;
+  }
 }
 
 @layer components {
@@ -106,5 +115,34 @@
   
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-[1.02];
+  }
+
+  /* Dark mode improvements */
+  .dark .card-hover {
+    @apply hover:bg-gray-800;
+  }
+
+  .dark .badge-primary {
+    @apply bg-blue-800 text-blue-100;
+  }
+
+  .dark .badge-secondary {
+    @apply bg-purple-800 text-purple-100;
+  }
+
+  .dark .badge-success {
+    @apply bg-green-800 text-green-100;
+  }
+
+  .dark .badge-warning {
+    @apply bg-amber-800 text-amber-100;
+  }
+
+  .dark .input-improved {
+    @apply bg-gray-800 border-gray-700 text-white;
+  }
+
+  .dark .dropdown-improved {
+    @apply bg-gray-800 border-gray-700;
   }
 }
