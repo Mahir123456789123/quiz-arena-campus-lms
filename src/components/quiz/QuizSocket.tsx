@@ -28,14 +28,7 @@ const QuizSocket: React.FC<QuizSocketProps> = ({ roomId, onScoreUpdate }) => {
     socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        
-        if (message.type === 'score') {
-          onScoreUpdate?.(message.data);
-          toast({
-            title: "Score Updated",
-            description: `Your current score: ${message.data}`,
-          });
-        } else if (message.type === 'leaderboard') {
+        if (message.type === 'leaderboard') {
           setLeaderboard(message.data);
         }
       } catch (error) {
@@ -51,7 +44,7 @@ const QuizSocket: React.FC<QuizSocketProps> = ({ roomId, onScoreUpdate }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5 text-yellow-500" />
-          Live Leaderboard
+          Quiz Leaderboard
         </CardTitle>
       </CardHeader>
       <CardContent>
