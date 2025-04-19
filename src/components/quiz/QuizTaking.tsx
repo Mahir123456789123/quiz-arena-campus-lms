@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -88,27 +89,43 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data, error } = await supabase
+      // First, fetch quiz results
+      const { data: resultsData, error: resultsError } = await supabase
         .from('quiz_results')
-        .select(`
-          score,
-          time_taken,
-          profiles:user_id (
-            full_name
-          )
-        `)
+        .select('id, user_id, score, time_taken')
         .eq('quiz_category', roomId)
         .order('score', { ascending: false })
         .order('time_taken', { ascending: true });
-
-      if (error) throw error;
-
-      const formattedLeaderboard = data.map(entry => ({
-        username: entry.profiles?.full_name || 'Anonymous Student',
-        score: entry.score,
-        timeTaken: entry.time_taken
-      }));
-
+      
+      if (resultsError) throw resultsError;
+      
+      // Then for each result, get the profile information
+      const formattedLeaderboard = await Promise.all(
+        resultsData.map(async (result) => {
+          // Get profile information for each user
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', result.user_id)
+            .single();
+          
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', profileError);
+            return {
+              username: 'Anonymous Student',
+              score: result.score,
+              timeTaken: result.time_taken
+            };
+          }
+          
+          return {
+            username: profileData?.full_name || 'Anonymous Student',
+            score: result.score,
+            timeTaken: result.time_taken
+          };
+        })
+      );
+      
       setLeaderboard(formattedLeaderboard);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
