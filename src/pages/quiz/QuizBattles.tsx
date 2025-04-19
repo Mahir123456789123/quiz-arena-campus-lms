@@ -7,13 +7,18 @@ import { BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-// Hardcoded quiz categories from CSV
+// Hardcoded quiz categories from new CSV
 const AVAILABLE_QUIZZES = [
-  { id: 'general', title: 'General Knowledge', description: 'Test your general knowledge' },
-  { id: 'science', title: 'Science', description: 'Science and nature questions' },
-  { id: 'history', title: 'History', description: 'Historical events and figures' },
-  { id: 'geography', title: 'Geography', description: 'World geography questions' },
-  { id: 'arts', title: 'Arts', description: 'Art and literature questions' }
+  { id: 'operating-systems', title: 'Operating Systems', description: 'Test your knowledge of OS concepts' },
+  { id: 'algorithms', title: 'Algorithms', description: 'Algorithmic problem solving and complexity' },
+  { id: 'computer-networks', title: 'Computer Networks', description: 'Network protocols and architecture' },
+  { id: 'data-structures', title: 'Data Structures', description: 'Fundamental data structures' },
+  { id: 'python-programming', title: 'Python Programming', description: 'Python language and concepts' },
+  { id: 'database-management', title: 'Database Management', description: 'Database concepts and SQL' },
+  { id: 'discrete-mathematics', title: 'Discrete Mathematics', description: 'Mathematical foundations of CS' },
+  { id: 'computer-organization', title: 'Computer Organization', description: 'Computer architecture and organization' },
+  { id: 'software-engineering', title: 'Software Engineering', description: 'Software development methodologies' },
+  { id: 'theory-of-computation', title: 'Theory of Computation', description: 'Computational theory and automata' }
 ];
 
 const QuizBattles = () => {

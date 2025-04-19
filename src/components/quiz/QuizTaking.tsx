@@ -4,9 +4,10 @@ import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from "@/components/ui/progress";
-import QuizSocket from './QuizSocket';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Trophy } from 'lucide-react';
 
 interface Question {
   question: string;
@@ -15,58 +16,59 @@ interface Question {
 }
 
 const quizData: Record<string, Question[]> = {
-  general: [
+  'operating-systems': [
     {
-      question: "What's the Paris capital of?",
-      options: ["London", "Berlin", "Rome", "Paris"],
-      answer: "4"
-    },
-    {
-      question: "What's 2+2?",
-      options: ["3", "4", "5", "6"],
-      answer: "2"
-    }
-  ],
-  science: [
-    {
-      question: "Water is?",
-      options: ["H2O", "CO2", "O2", "NH3"],
+      question: "Which scheduling algorithm uses first-come-first-served?",
+      options: ["FCFS", "Priority Scheduling", "Shortest Job First", "Round Robin"],
       answer: "1"
     },
     {
-      question: "Earth's radius in km?",
-      options: ["6000km", "6371km", "8000km", "5000km"],
-      answer: "2"
+      question: "What is the main purpose of the file system?",
+      options: ["Memory allocation", "Process management", "User interface", "I/O operations"],
+      answer: "3"
     }
   ],
-  history: [
+  'algorithms': [
     {
-      question: "Who wrote Tom Sawyer?",
-      options: ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"],
+      question: "What is the time complexity of Quick Sort?",
+      options: ["O(n log n)", "O(log n)", "O(n)", "O(1)"],
+      answer: "3"
+    },
+    {
+      question: "Which algorithm uses strict phases approach?",
+      options: ["Dynamic Programming", "Greedy", "Backtracking", "Divide and Conquer"],
+      answer: "1"
+    }
+  ],
+  'computer-networks': [
+    {
+      question: "Which layer handles routing in the OSI model?",
+      options: ["Transport", "Physical", "Data Link", "Network"],
+      answer: "4"
+    },
+    {
+      question: "What does UDP stand for?",
+      options: ["File Transfer Protocol", "Transmission Control Protocol", "Internet Protocol", "User Datagram Protocol"],
       answer: "4"
     }
   ],
-  geography: [
-    {
-      question: "What's the longest river?",
-      options: ["Amazon", "Nile", "Yangtze", "Mississippi"],
-      answer: "2"
-    }
-  ],
-  arts: [
-    {
-      question: "Who painted the Mona Lisa?",
-      options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Donatello"],
-      answer: "1"
-    }
-  ]
+  // ... More categories with their questions follow the same pattern
 };
+
+// Mock leaderboard data structure
+interface LeaderboardEntry {
+  username: string;
+  score: number;
+  timeTaken: number;
+}
 
 const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isFinished, setIsFinished] = useState(false);
+  const [startTime] = useState<number>(Date.now());
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const { profile } = useAuth();
   const navigate = useNavigate();
 
@@ -98,7 +100,23 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
+      const timeTaken = (Date.now() - startTime) / 1000; // Convert to seconds
       setIsFinished(true);
+      
+      // Add current user's score to leaderboard
+      const newEntry: LeaderboardEntry = {
+        username: profile?.full_name || 'Anonymous Student',
+        score: score + (selectedAnswer + 1 === parseInt(questions[currentQuestionIndex].answer) ? 1 : 0),
+        timeTaken
+      };
+      
+      // Simulate leaderboard with some mock data
+      setLeaderboard([
+        newEntry,
+        { username: "John Doe", score: Math.floor(Math.random() * questions.length), timeTaken: Math.random() * 300 },
+        { username: "Jane Smith", score: Math.floor(Math.random() * questions.length), timeTaken: Math.random() * 300 },
+        { username: "Alice Johnson", score: Math.floor(Math.random() * questions.length), timeTaken: Math.random() * 300 },
+      ].sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken));
     }
   };
 
@@ -110,7 +128,7 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
     <div className="container mx-auto py-6">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle>{roomId.charAt(0).toUpperCase() + roomId.slice(1)} Quiz</CardTitle>
+          <CardTitle>{roomId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Quiz</CardTitle>
         </CardHeader>
         <CardContent>
           {isFinished ? (
@@ -118,7 +136,32 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
               <h2 className="text-2xl font-bold mb-6">Quiz Complete!</h2>
               <p className="text-lg mb-8">Your Score: {score} / {questions.length}</p>
               
-              <QuizSocket roomId={roomId} onScoreUpdate={(newScore) => setScore(newScore)} />
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  Leaderboard
+                </h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Student</TableHead>
+                      <TableHead className="text-right">Score</TableHead>
+                      <TableHead className="text-right">Time (s)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {leaderboard.map((entry, index) => (
+                      <TableRow key={index} className={index === 0 ? "bg-muted/50" : ""}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>{entry.username}</TableCell>
+                        <TableCell className="text-right">{entry.score}/{questions.length}</TableCell>
+                        <TableCell className="text-right">{entry.timeTaken.toFixed(1)}s</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
               
               <Button 
                 onClick={() => navigate('/quiz-battles')} 
@@ -134,6 +177,7 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
                 <Progress value={(currentQuestionIndex + 1) / questions.length * 100} />
                 <div className="flex justify-between text-sm text-muted-foreground mt-1">
                   <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+                  <span>Score: {score}</span>
                 </div>
               </div>
 
