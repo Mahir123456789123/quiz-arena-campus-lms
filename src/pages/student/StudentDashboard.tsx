@@ -4,10 +4,10 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, FileQuestion } from 'lucide-react';
+import { BookOpen, Clock, Award, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
@@ -98,67 +98,104 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container py-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Student Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back to your learning journey</p>
+      <main className="flex-1 container py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold tracking-tight">Student Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Track your progress and manage your courses</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <Card>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Enrolled Courses</CardTitle>
+              <CardTitle className="text-sm font-medium opacity-80">Enrolled Courses</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{enrollments.length}</div>
+              <div className="text-3xl font-bold">{enrollments.length}</div>
+              <BookOpen className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-80">Hours Studied</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">24</div>
+              <Clock className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-80">Completed Courses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">3</div>
+              <Award className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-80">Average Score</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">85%</div>
+              <BarChart3 className="absolute bottom-4 right-4 h-12 w-12 opacity-20" />
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {enrollments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  <span>My Courses</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {enrollments.map((enrollment: any) => (
-                  <div key={enrollment.id} className="p-4 border rounded-lg">
-                    <h3 className="font-medium">{enrollment.course.title}</h3>
-                    <p className="text-sm text-muted-foreground">{enrollment.course.description}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-          
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                <span>Join a Course</span>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Join a Course
               </CardTitle>
-              <CardDescription>Enter a course code to enroll</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleJoinCourse} className="flex gap-2">
-                <Input
-                  value={courseCode}
-                  onChange={(e) => setCourseCode(e.target.value)}
-                  placeholder="Enter course code"
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Joining...' : 'Join'}
+              <form onSubmit={handleJoinCourse} className="space-y-4">
+                <div>
+                  <Input
+                    value={courseCode}
+                    onChange={(e) => setCourseCode(e.target.value)}
+                    placeholder="Enter course code"
+                    className="w-full"
+                  />
+                </div>
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading ? 'Joining...' : 'Join Course'}
                 </Button>
               </form>
             </CardContent>
           </Card>
+
+          {enrollments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  My Courses
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {enrollments.map((enrollment: any) => (
+                  <Card key={enrollment.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="p-4">
+                      <CardTitle className="text-base font-medium">{enrollment.course.title}</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{enrollment.course.description}</p>
+                      <Button variant="outline" size="sm" className="mt-2" asChild>
+                        <Link to={`/courses/${enrollment.course.id}`}>View Course</Link>
+                      </Button>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       <Footer />
