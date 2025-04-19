@@ -1,15 +1,20 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Boxes } from "@/components/ui/background-boxes";
 
 const HeroSection = () => {
   return (
-    <section className="py-20 px-4 md:px-6 bg-gradient-to-b from-background to-edu-muted/30">
-      <div className="container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <section className="relative min-h-[80vh] px-4 md:px-6">
+      <div className="absolute inset-0 w-full h-full bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 w-full h-full bg-slate-900 z-20 [mask-image:radial-gradient(transparent,white)] pointer-events-none" />
+        <Boxes />
+      </div>
+      
+      <div className="container mx-auto relative z-30">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-[80vh]">
           <div className="flex flex-col gap-6 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
               Learn, Compete, <span className="text-edu-primary">Excel</span>
             </h1>
             <p className="text-xl text-muted-foreground">
@@ -41,7 +46,7 @@ const HeroSection = () => {
             </div>
           </div>
           
-          <div className="relative h-[400px] rounded-xl overflow-hidden shadow-xl border-4 border-white">
+          <div className="relative h-[400px] rounded-xl overflow-hidden shadow-xl border-4 border-white/10">
             <img 
               src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80" 
               alt="Students learning" 
