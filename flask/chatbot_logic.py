@@ -5,7 +5,7 @@ import requests
 genai.configure(api_key="AIzaSyCxFXT_4QYc7Dp1AEPnSmbqJYDGXAN-A6Y")
 model = genai.GenerativeModel(model_name="gemini-1.5-pro")
 
-BACKEND_API = "http://127.0.0.1:5000"
+BACKEND_API = "http://127.0.0.1:5001"
 
 def chatbot_with_data(user_input, student_id, progress_data, deadline_data):
     prompt = f"""
