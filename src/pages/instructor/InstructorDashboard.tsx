@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,10 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, Users, Eye, PencilIcon, Trash2 } from 'lucide-react';
+import { BookOpen, Users, Eye, PencilIcon, Trash2, Calendar, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { CreateMeetingButton } from '@/components/video/CreateMeetingButton';
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
@@ -23,6 +25,12 @@ const InstructorDashboard = () => {
   });
   
   const { data: courses = [], refetch: refetchCourses } = useUserCourses();
+  
+  // Mock upcoming meetings data - in a real app, this would come from a database
+  const upcomingMeetings = [
+    { id: 1, title: 'Course Introduction', date: '2025-04-22', time: '10:00 AM', roomId: '12345678' },
+    { id: 2, title: 'Office Hours', date: '2025-04-25', time: '02:30 PM', roomId: '87654321' }
+  ];
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +78,10 @@ const InstructorDashboard = () => {
   const navigateToQuizzes = () => {
     navigate('/instructor/course-quizzes');
   };
+  
+  const joinMeeting = (roomId: string) => {
+    navigate(`/meeting/${roomId}`);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,6 +98,7 @@ const InstructorDashboard = () => {
               <BookOpen className="h-4 w-4 mr-2" />
               Manage Quizzes
             </Button>
+            <CreateMeetingButton />
           </div>
         </div>
 
@@ -129,6 +142,43 @@ const InstructorDashboard = () => {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Upcoming Meetings Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              Upcoming Meetings
+            </CardTitle>
+            <CardDescription>Manage your scheduled video meetings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {upcomingMeetings.length > 0 ? (
+              <div className="space-y-4">
+                {upcomingMeetings.map(meeting => (
+                  <div key={meeting.id} className="flex items-center justify-between border-b pb-4">
+                    <div>
+                      <h3 className="font-medium">{meeting.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {meeting.date} at {meeting.time}
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => joinMeeting(meeting.roomId)}
+                    >
+                      <Video className="h-4 w-4 mr-2" />
+                      Join
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No upcoming meetings scheduled</p>
+            )}
+          </CardContent>
+        </Card>
 
         {showCreateForm && (
           <Card className="mb-8">

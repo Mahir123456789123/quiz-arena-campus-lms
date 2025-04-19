@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,15 +15,14 @@ serve(async (req) => {
   try {
     const { roomId, userId, userName } = await req.json()
     
-    const appID = parseInt(Deno.env.get('ZEGOCLOUD_APP_ID') || '')
+    const appID = parseInt(Deno.env.get('ZEGOCLOUD_APP_ID') || '0')
     const serverSecret = Deno.env.get('ZEGOCLOUD_SERVER_SECRET') || ''
 
     if (!appID || !serverSecret) {
       throw new Error('Missing Zegocloud credentials')
     }
 
-    // Generate token using the npm package
-    const kitToken = await generateToken(appID, serverSecret, roomId, userId, userName)
+    const kitToken = generateToken(appID, serverSecret, roomId, userId, userName)
 
     return new Response(
       JSON.stringify({ token: kitToken }),
@@ -39,13 +39,48 @@ serve(async (req) => {
   }
 })
 
-async function generateToken(
+function generateToken(
   appID: number,
   serverSecret: string,
   roomID: string,
   userID: string,
-  userName: string
-): Promise<string> {
-  // Implementation would go here - for now return a mock token
-  return "mock-token-for-testing"
+  userName: string,
+  seconds: number = 3600
+): string {
+  const timestamp = Math.floor(Date.now() / 1000) + seconds;
+  
+  const payload = {
+    app_id: appID,
+    user_id: userID,
+    room_id: roomID,
+    privilege: {
+      1: 1, // Login privilege
+      2: 1  // Publish privilege
+    },
+    stream_id_list: null,
+    payload: JSON.stringify({
+      user_name: userName,
+      room_name: `Room ${roomID}`
+    })
+  };
+  
+  const payloadString = JSON.stringify(payload);
+  const encodedPayload = btoa(payloadString);
+  
+  // Create signature
+  const signatureContent = `${appID}${timestamp}${encodedPayload}`;
+  const hmac = createHmac("sha256", serverSecret);
+  hmac.update(signatureContent);
+  const signature = hmac.digest("hex");
+  
+  // Combine the token parts
+  const tokenInfo = {
+    signature: signature,
+    app_id: appID,
+    nonce: 0, // We're not using nonce
+    timestamp,
+    payload: encodedPayload
+  };
+  
+  return btoa(JSON.stringify(tokenInfo));
 }
