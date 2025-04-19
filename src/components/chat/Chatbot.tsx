@@ -55,9 +55,9 @@ export const Chatbot = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 p-4 h-full">
       <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-bold">🎓 Academic Chatbot</h2>
+        <h2 className="text-xl font-bold">🎓 Academic Assistant</h2>
         <Input
           placeholder="Enter your student ID"
           value={studentId}
@@ -66,7 +66,7 @@ export const Chatbot = () => {
         />
       </div>
 
-      <ScrollArea className="h-[400px] border rounded-md p-4">
+      <ScrollArea className="flex-1 border rounded-md p-4">
         <div className="flex flex-col gap-2">
           {chat.map((msg, idx) => (
             <div

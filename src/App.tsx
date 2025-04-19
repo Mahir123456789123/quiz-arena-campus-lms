@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ChatbotButton } from "@/components/chat/ChatbotButton";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ProfileSettings from "./pages/ProfileSettings";
@@ -18,7 +19,6 @@ import QuizBattlePage from "./pages/quiz/QuizBattlePage";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ContentHub from "./pages/ContentHub";
-import ChatbotPage from "./pages/ChatbotPage";
 
 const queryClient = new QueryClient();
 
@@ -42,9 +42,9 @@ function App() {
               <Route path="/quiz-battles" element={<QuizBattles />} />
               <Route path="/quiz-battle/:roomId" element={<QuizBattlePage />} />
               <Route path="/content-hub" element={<ProtectedRoute><ContentHub /></ProtectedRoute>} />
-              <Route path="/chatbot" element={<ProtectedRoute><ChatbotPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <ChatbotButton />
             <Toaster />
             <Sonner />
           </TooltipProvider>
