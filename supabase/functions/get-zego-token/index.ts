@@ -8,12 +8,17 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const { roomId, userId, userName } = await req.json()
+    
+    if (!roomId || !userId) {
+      throw new Error('Missing required parameters: roomId and userId are required')
+    }
     
     const appID = parseInt(Deno.env.get('ZEGOCLOUD_APP_ID') || '0')
     const serverSecret = Deno.env.get('ZEGOCLOUD_SERVER_SECRET') || ''
@@ -22,13 +27,17 @@ serve(async (req) => {
       throw new Error('Missing Zegocloud credentials')
     }
 
-    const kitToken = generateToken(appID, serverSecret, roomId, userId, userName)
+    const kitToken = generateToken(appID, serverSecret, roomId, userId, userName || 'Anonymous')
 
+    console.log(`Token generated successfully for room: ${roomId}, user: ${userId}`)
+    
     return new Response(
       JSON.stringify({ token: kitToken }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
+    console.error('Token generation error:', error.message)
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
