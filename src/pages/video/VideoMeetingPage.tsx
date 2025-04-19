@@ -31,7 +31,10 @@ const VideoMeetingPage = () => {
       },
       showTurnOffRemoteCameraButton: true,
       showTurnOffRemoteMicrophoneButton: true,
-      showLeaveButton: true,
+      onLeaveRoom: () => {
+        // Optional: Add custom logic when leaving the room
+        window.history.back(); // Navigates back to the previous page
+      },
     });
   };
 
