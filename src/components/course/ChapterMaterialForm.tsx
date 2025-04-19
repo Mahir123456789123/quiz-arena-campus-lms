@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ChapterMaterialFormProps {
   chapterId: string;
@@ -79,13 +81,16 @@ const ChapterMaterialForm = ({ chapterId, onSuccess, onCancel }: ChapterMaterial
       if (materialError) throw materialError;
 
       if (isAssignment && deadline) {
+        // Convert Date to ISO string for database
+        const deadlineStr = deadline.toISOString();
+        
         const { error: assignmentError } = await supabase
           .from('assignments')
           .insert({
             material_id: materialData.id,
             title,
             description: content,
-            deadline,
+            deadline: deadlineStr,
             total_marks: totalMarks
           });
 
