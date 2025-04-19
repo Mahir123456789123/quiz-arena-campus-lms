@@ -1,7 +1,9 @@
+
 from flask import Flask, request, jsonify
 from chatbot_logic import chatbot_with_data
 from config import SUPABASE_URL, SUPABASE_HEADERS
 import requests
+
 app = Flask(__name__)
 
 def get_progress(student_id):

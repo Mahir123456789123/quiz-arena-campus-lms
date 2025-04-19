@@ -232,6 +232,36 @@ export type Database = {
           },
         ]
       }
+      deadlines: {
+        Row: {
+          course_name: string
+          created_at: string | null
+          due_date: string
+          id: string
+          student_id: string
+          task: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_name: string
+          created_at?: string | null
+          due_date: string
+          id?: string
+          student_id: string
+          task: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_name?: string
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          student_id?: string
+          task?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           course_id: string
@@ -289,6 +319,36 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: string | null
+        }
+        Relationships: []
+      }
+      progress: {
+        Row: {
+          completed_modules: number
+          course_name: string
+          created_at: string | null
+          id: string
+          student_id: string
+          total_modules: number
+          updated_at: string | null
+        }
+        Insert: {
+          completed_modules?: number
+          course_name: string
+          created_at?: string | null
+          id?: string
+          student_id: string
+          total_modules?: number
+          updated_at?: string | null
+        }
+        Update: {
+          completed_modules?: number
+          course_name?: string
+          created_at?: string | null
+          id?: string
+          student_id?: string
+          total_modules?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
