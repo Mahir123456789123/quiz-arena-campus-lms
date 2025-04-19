@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Video, Calendar } from 'lucide-react';
@@ -14,10 +14,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 
+// Define the valid button variant types
 type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+
+// Define a type for scheduled meetings
+type ScheduledMeeting = {
+  id: string;
+  title: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  roomId: string;
+  createdBy: string;
+  createdByName: string;
+};
 
 export const CreateMeetingButton = ({ 
   variant = "outline" as ButtonVariant, 
@@ -31,6 +42,19 @@ export const CreateMeetingButton = ({
   const [meetingTitle, setMeetingTitle] = useState('');
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
+  const [scheduledMeetings, setScheduledMeetings] = useState<ScheduledMeeting[]>([]);
+
+  // Load meetings from localStorage on component mount
+  useEffect(() => {
+    const storedMeetings = localStorage.getItem('scheduledMeetings');
+    if (storedMeetings) {
+      try {
+        setScheduledMeetings(JSON.parse(storedMeetings));
+      } catch (e) {
+        console.error('Error parsing stored meetings:', e);
+      }
+    }
+  }, []);
 
   const createInstantMeeting = () => {
     try {
@@ -73,23 +97,23 @@ export const CreateMeetingButton = ({
       // Generate a unique room ID for the scheduled meeting
       const roomId = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
       
-      // In a real app, save to database - for this demo we'll use tables
-      const { error } = await supabase
-        .from('scheduled_meetings')
-        .insert({
-          title: meetingTitle,
-          scheduled_date: meetingDate,
-          scheduled_time: meetingTime,
-          room_id: roomId,
-          created_by: user.id,
-          created_by_name: profile.full_name || user.email
-        });
-        
-      if (error) {
-        console.error('Error scheduling meeting:', error);
-        toast.error('Failed to schedule meeting');
-        return;
-      }
+      // Create new meeting object
+      const newMeeting: ScheduledMeeting = {
+        id: `meeting-${Date.now()}`,
+        title: meetingTitle,
+        scheduledDate: meetingDate,
+        scheduledTime: meetingTime,
+        roomId: roomId,
+        createdBy: user.id,
+        createdByName: profile.full_name || user.email || 'Anonymous'
+      };
+      
+      // Add to local state
+      const updatedMeetings = [...scheduledMeetings, newMeeting];
+      setScheduledMeetings(updatedMeetings);
+      
+      // Store in localStorage
+      localStorage.setItem('scheduledMeetings', JSON.stringify(updatedMeetings));
       
       toast.success(`Meeting "${meetingTitle}" scheduled for ${meetingDate} at ${meetingTime}`);
       setIsDialogOpen(false);

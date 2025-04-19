@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserCourses } from '@/hooks/useUserCourses';
@@ -15,6 +15,17 @@ import { useNavigate } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { CreateMeetingButton } from '@/components/video/CreateMeetingButton';
 
+// Define a type for scheduled meetings
+type ScheduledMeeting = {
+  id: string;
+  title: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  roomId: string;
+  createdBy: string;
+  createdByName: string;
+};
+
 const InstructorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -25,12 +36,36 @@ const InstructorDashboard = () => {
   });
   
   const { data: courses = [], refetch: refetchCourses } = useUserCourses();
+  const [upcomingMeetings, setUpcomingMeetings] = useState<ScheduledMeeting[]>([]);
   
-  // Mock upcoming meetings data - in a real app, this would come from a database
-  const upcomingMeetings = [
-    { id: 1, title: 'Course Introduction', date: '2025-04-22', time: '10:00 AM', roomId: '12345678' },
-    { id: 2, title: 'Office Hours', date: '2025-04-25', time: '02:30 PM', roomId: '87654321' }
-  ];
+  // Load scheduled meetings from localStorage
+  useEffect(() => {
+    const loadMeetings = () => {
+      const storedMeetings = localStorage.getItem('scheduledMeetings');
+      if (storedMeetings) {
+        try {
+          const parsedMeetings = JSON.parse(storedMeetings) as ScheduledMeeting[];
+          // Filter meetings to show only upcoming ones
+          const filteredMeetings = parsedMeetings.filter(meeting => {
+            const meetingDateTime = new Date(`${meeting.scheduledDate}T${meeting.scheduledTime}`);
+            return meetingDateTime > new Date();
+          });
+          setUpcomingMeetings(filteredMeetings);
+        } catch (e) {
+          console.error('Error parsing stored meetings:', e);
+        }
+      }
+    };
+
+    // Load meetings initially
+    loadMeetings();
+
+    // Set up an interval to refresh meetings (e.g., every minute)
+    const interval = setInterval(loadMeetings, 60000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,7 +195,7 @@ const InstructorDashboard = () => {
                     <div>
                       <h3 className="font-medium">{meeting.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {meeting.date} at {meeting.time}
+                        {meeting.scheduledDate} at {meeting.scheduledTime}
                       </p>
                     </div>
                     <Button 
