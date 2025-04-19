@@ -35,6 +35,12 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
     e.preventDefault();
     if (!user) return;
 
+    // Validate required fields
+    if (!formData.title || !formData.subject || !formData.type) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     setIsUploading(true);
     try {
       // Upload file if exists
@@ -56,7 +62,7 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
         .insert({
           title: formData.title,
           author_id: user.id,
-          author_name: user.email,
+          author_name: user.email || 'Unknown Author',
           type: formData.type,
           subject: formData.subject,
           article_snippet: formData.articleSnippet,
