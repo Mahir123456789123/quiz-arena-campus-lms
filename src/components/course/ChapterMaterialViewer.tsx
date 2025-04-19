@@ -1,137 +1,125 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, FileVideo, Download, Upload, Clock, Check, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, FileVideo, Link as LinkIcon, PenLine, Trash, Upload } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
+import { Input } from '@/components/ui/input';
 
 export interface ChapterMaterialViewerProps {
   material: any;
   onDelete?: (id: string) => void;
 }
 
-const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProps) => {
-  const { user, profile } = useAuth();
-  const [file, setFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submission, setSubmission] = useState<any>(null);
-  const [textSubmission, setTextSubmission] = useState('');
-  const [marks, setMarks] = useState<number | ''>('');
-  const [feedback, setFeedback] = useState('');
-  const [loading, setLoading] = useState(true);
-  const isInstructor = profile?.role === 'instructor';
-  const isStudent = profile?.role === 'student';
-
-  const fetchSubmission = async () => {
-    if (!user?.id || !material?.is_assignment) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('assignment_id', material.assignment?.id)
-        .eq('student_id', user.id)
-        .maybeSingle();
-      
-      if (error) throw error;
-      
-      if (data) {
-        setSubmission(data);
-        setTextSubmission(data.submission_content || '');
-      }
-      
-    } catch (error: any) {
-      console.error('Error fetching submission:', error);
-    } finally {
-      setLoading(false);
+export default function ChapterMaterialViewer({ material, onDelete }: ChapterMaterialViewerProps) {
+  const { user } = useAuth();
+  const [submissionFile, setSubmissionFile] = useState<File | null>(null);
+  const [submissionContent, setSubmissionContent] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [submission, setSubmission] = useState<any>(material.submissions?.[0] || null);
+  const [feedback, setFeedback] = useState(submission?.feedback || '');
+  const [marksObtained, setMarksObtained] = useState<number | ''>(submission?.marks_obtained || '');
+  const [isGrading, setIsGrading] = useState(false);
+  
+  const isAssignment = material.is_assignment;
+  const hasSubmissionDeadline = isAssignment && material.assignment && material.assignment.deadline;
+  const deadlineDate = hasSubmissionDeadline ? new Date(material.assignment.deadline) : null;
+  const deadlinePassed = deadlineDate ? new Date() > deadlineDate : false;
+  
+  const renderTypeIcon = () => {
+    switch (material.type) {
+      case 'text':
+        return <PenLine className="h-5 w-5" />;
+      case 'file':
+        return <FileText className="h-5 w-5" />;
+      case 'video':
+        return <FileVideo className="h-5 w-5" />;
+      default:
+        return null;
     }
   };
 
-  useState(() => {
-    fetchSubmission();
-  });
-
-  const handleSubmitAssignment = async () => {
-    if (!user?.id || !material?.is_assignment || (!file && !textSubmission.trim())) {
-      toast.error('Please provide a submission file or text');
+  const handleSubmissionUpload = async () => {
+    if (!user) return;
+    if (!submissionFile && !submissionContent) {
+      toast.error('Please provide a submission');
       return;
     }
 
-    setSubmitting(true);
     try {
+      setUploading(true);
       let submissionUrl = null;
 
-      if (file) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${material.assignment.id}_${user.id}_${Math.random().toString(36).slice(2)}.${fileExt}`;
-        const filePath = `assignments/${fileName}`;
+      if (submissionFile) {
+        const fileExt = submissionFile.name.split('.').pop();
+        const fileName = `${material.id}-${uuidv4()}.${fileExt}`;
+        const filePath = `submissions/${fileName}`;
 
-        // Remove the onUploadProgress property that's causing the error
         const { error: uploadError } = await supabase
           .storage
-          .from('submissions')
-          .upload(filePath, file, {
+          .from('course-materials')
+          .upload(filePath, submissionFile, {
             cacheControl: '3600'
-            // Removed onUploadProgress as it's not supported
           });
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase
           .storage
-          .from('submissions')
+          .from('course-materials')
           .getPublicUrl(filePath);
 
         submissionUrl = publicUrl;
       }
 
-      const submissionData = {
-        assignment_id: material.assignment.id,
-        student_id: user.id,
-        submission_content: textSubmission.trim() || null,
-        submission_url: submissionUrl
-      };
+      const { error: submissionError } = await supabase
+        .from('submissions')
+        .insert({
+          assignment_id: material.assignment.id,
+          student_id: user.id,
+          submission_content: submissionContent || null,
+          submission_url: submissionUrl
+        });
 
-      if (submission) {
-        // Update existing submission
-        const { error: updateError } = await supabase
-          .from('submissions')
-          .update(submissionData)
-          .eq('id', submission.id);
-        
-        if (updateError) throw updateError;
-      } else {
-        // Create new submission
-        const { error: insertError } = await supabase
-          .from('submissions')
-          .insert(submissionData);
-        
-        if (insertError) throw insertError;
-      }
+      if (submissionError) throw submissionError;
 
-      toast.success('Assignment submitted successfully');
-      fetchSubmission();
+      toast.success('Submission uploaded successfully');
+      
+      // Fetch the updated submission
+      const { data: submissionData, error: fetchError } = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('assignment_id', material.assignment.id)
+        .eq('student_id', user.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      setSubmission(submissionData);
+      setSubmissionFile(null);
+      setSubmissionContent('');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
-      setSubmitting(false);
+      setUploading(false);
     }
   };
 
   const handleGradeSubmission = async () => {
-    if (!submission || marks === '') return;
+    if (!submission) return;
     
     try {
+      setIsGrading(true);
+      
       const { error } = await supabase
         .from('submissions')
         .update({
-          marks_obtained: Number(marks),
           feedback,
+          marks_obtained: marksObtained,
           graded_at: new Date().toISOString()
         })
         .eq('id', submission.id);
@@ -139,259 +127,246 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
       if (error) throw error;
       
       toast.success('Submission graded successfully');
-      fetchSubmission();
+      
+      // Update local state
+      setSubmission({
+        ...submission,
+        feedback,
+        marks_obtained: marksObtained,
+        graded_at: new Date().toISOString()
+      });
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setIsGrading(false);
     }
-  };
-
-  const renderMaterialContent = () => {
-    switch (material.type) {
-      case 'text':
-        return <div className="prose max-w-none">{material.content}</div>;
-      case 'file':
-        return (
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            <span>Document: </span>
-            <a 
-              href={material.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-blue-600 hover:underline"
-            >
-              {material.title}
-            </a>
-            <Button size="sm" variant="ghost" asChild>
-              <a href={material.url} download>
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </a>
-            </Button>
-          </div>
-        );
-      case 'video':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <FileVideo className="h-5 w-5" />
-              <span>Video: {material.title}</span>
-            </div>
-            <video 
-              src={material.url} 
-              controls 
-              className="w-full rounded-md"
-            />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const renderAssignmentSubmission = () => {
-    if (!material.is_assignment) return null;
-    
-    if (isInstructor) {
-      return (
-        <div className="mt-4 border-t pt-4">
-          <h3 className="text-lg font-medium mb-2">Assignment Submissions</h3>
-          {/* Instructor could view all submissions here */}
-        </div>
-      );
-    }
-    
-    if (!isStudent) return null;
-    
-    const deadline = material.assignment ? new Date(material.assignment.deadline) : null;
-    const isPastDeadline = deadline ? new Date() > deadline : false;
-    
-    return (
-      <div className="mt-4 border-t pt-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="h-4 w-4 text-orange-500" />
-          <span>
-            Deadline: {deadline ? format(deadline, 'PPpp') : 'No deadline set'}
-          </span>
-          {isPastDeadline && (
-            <span className="text-red-500 text-sm font-medium">Past due</span>
-          )}
-        </div>
-        
-        {submission ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-green-600">
-              <Check className="h-4 w-4" />
-              <span>Submitted on {format(new Date(submission.submitted_at), 'PPpp')}</span>
-            </div>
-            
-            {submission.submission_url && (
-              <div>
-                <a 
-                  href={submission.submission_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-blue-600 hover:underline flex items-center gap-1"
-                >
-                  <FileText className="h-4 w-4" />
-                  View Submission File
-                </a>
-              </div>
-            )}
-            
-            {submission.submission_content && (
-              <div className="border p-3 rounded-md bg-gray-50">
-                <h4 className="font-medium mb-1">Text Submission:</h4>
-                <p>{submission.submission_content}</p>
-              </div>
-            )}
-            
-            {submission.graded_at && (
-              <div className="border p-3 rounded-md bg-blue-50">
-                <h4 className="font-medium mb-1">Grade:</h4>
-                <p>Marks: {submission.marks_obtained} / {material.assignment.total_marks}</p>
-                {submission.feedback && (
-                  <>
-                    <h4 className="font-medium mt-2 mb-1">Feedback:</h4>
-                    <p>{submission.feedback}</p>
-                  </>
-                )}
-              </div>
-            )}
-            
-            {!isPastDeadline && !submission.graded_at && (
-              <div className="space-y-3">
-                <h4 className="font-medium">Update your submission:</h4>
-                <Textarea
-                  value={textSubmission}
-                  onChange={(e) => setTextSubmission(e.target.value)}
-                  placeholder="Enter your text submission here..."
-                  rows={4}
-                />
-                <div>
-                  <input
-                    type="file"
-                    onChange={(e) => e.target.files && setFile(e.target.files[0])}
-                    className="hidden"
-                    id="submission-file"
-                  />
-                  <label htmlFor="submission-file" className="cursor-pointer">
-                    <div className="flex items-center gap-2 border rounded-md p-2 bg-gray-50 hover:bg-gray-100 w-fit">
-                      <Upload className="h-4 w-4" />
-                      <span>{file ? file.name : 'Upload new file'}</span>
-                    </div>
-                  </label>
-                </div>
-                <Button onClick={handleSubmitAssignment} disabled={submitting}>
-                  {submitting ? 'Updating...' : 'Update Submission'}
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <h4 className="font-medium">Submit your assignment:</h4>
-            <Textarea
-              value={textSubmission}
-              onChange={(e) => setTextSubmission(e.target.value)}
-              placeholder="Enter your text submission here..."
-              rows={4}
-            />
-            <div>
-              <input
-                type="file"
-                onChange={(e) => e.target.files && setFile(e.target.files[0])}
-                className="hidden"
-                id="submission-file"
-              />
-              <label htmlFor="submission-file" className="cursor-pointer">
-                <div className="flex items-center gap-2 border rounded-md p-2 bg-gray-50 hover:bg-gray-100 w-fit">
-                  <Upload className="h-4 w-4" />
-                  <span>{file ? file.name : 'Upload file'}</span>
-                </div>
-              </label>
-            </div>
-            <Button onClick={handleSubmitAssignment} disabled={submitting || isPastDeadline}>
-              {submitting ? 'Submitting...' : 'Submit Assignment'}
-            </Button>
-            {isPastDeadline && (
-              <p className="text-red-500 text-sm">
-                Submission deadline has passed and new submissions are not accepted.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderGradingForm = () => {
-    if (!isInstructor || !submission || !material.is_assignment) return null;
-    
-    return (
-      <div className="mt-4 border-t pt-4">
-        <h3 className="text-lg font-medium mb-2">Grade Submission</h3>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Marks (out of {material.assignment.total_marks})
-            </label>
-            <Input
-              type="number"
-              value={marks}
-              onChange={(e) => setMarks(Number(e.target.value))}
-              max={material.assignment.total_marks}
-              min={0}
-              placeholder="Enter marks"
-              className="w-32"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Feedback</label>
-            <Textarea
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Enter feedback for student"
-              rows={3}
-            />
-          </div>
-          <Button onClick={handleGradeSubmission}>
-            Submit Grade
-          </Button>
-        </div>
-      </div>
-    );
   };
 
   return (
     <Card className="mb-4">
-      <CardHeader>
-        <CardTitle className="flex justify-between items-start">
-          <span>{material.title}</span>
-          {onDelete && isInstructor && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onDelete(material.id)}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            {renderTypeIcon()}
+            <CardTitle>{material.title}</CardTitle>
+          </div>
+          {material.chapter && (
+            <CardDescription>
+              Chapter: {material.chapter.title}
+            </CardDescription>
           )}
-        </CardTitle>
-        {material.is_assignment && (
-          <CardDescription>
-            Assignment • Due {material.assignment && format(new Date(material.assignment.deadline), 'PPp')}
-          </CardDescription>
+        </div>
+        {onDelete && (
+          <Button
+            variant="ghost" 
+            size="icon" 
+            onClick={() => onDelete(material.id)}
+            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
         )}
       </CardHeader>
-      <CardContent>
-        {renderMaterialContent()}
-        {renderAssignmentSubmission()}
-        {renderGradingForm()}
+      <CardContent className="space-y-4">
+        {material.type === 'text' && material.content && (
+          <div className="prose prose-sm max-w-none">
+            <p>{material.content}</p>
+          </div>
+        )}
+        
+        {(material.type === 'file' || material.type === 'video') && material.url && (
+          <div>
+            <a 
+              href={material.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-primary hover:underline"
+            >
+              <LinkIcon className="h-4 w-4" />
+              Open {material.type === 'file' ? 'document' : 'video'}
+            </a>
+          </div>
+        )}
+        
+        {isAssignment && hasSubmissionDeadline && (
+          <div className="text-sm">
+            <span className={`font-semibold ${deadlinePassed ? 'text-destructive' : 'text-orange-500'}`}>
+              Deadline: {format(deadlineDate!, 'PPpp')}
+            </span>
+            {deadlinePassed && (
+              <span className="ml-2 text-destructive">(Passed)</span>
+            )}
+          </div>
+        )}
+
+        {isAssignment && (
+          <div className="border-t pt-4 mt-4">
+            <h4 className="font-medium mb-2">Assignment Details</h4>
+            {material.assignment.description && (
+              <p className="text-sm mb-4">{material.assignment.description}</p>
+            )}
+            <div className="text-sm">
+              <span className="font-medium">Total Marks:</span> {material.assignment.total_marks}
+            </div>
+          </div>
+        )}
+        
+        {isAssignment && submission && (
+          <div className="border-t pt-4 mt-4">
+            <h4 className="font-medium mb-2">Your Submission</h4>
+            <div className="text-sm">
+              <p>
+                <span className="font-medium">Submitted:</span> {format(new Date(submission.submitted_at), 'PPpp')}
+              </p>
+              
+              {submission.submission_content && (
+                <div className="mt-2">
+                  <h5 className="font-medium text-xs mb-1">Content:</h5>
+                  <p className="bg-muted p-2 rounded text-xs">{submission.submission_content}</p>
+                </div>
+              )}
+              
+              {submission.submission_url && (
+                <div className="mt-2">
+                  <a 
+                    href={submission.submission_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-primary hover:underline text-xs"
+                  >
+                    <LinkIcon className="h-3 w-3" />
+                    View submission file
+                  </a>
+                </div>
+              )}
+              
+              {submission.marks_obtained !== null && (
+                <div className="mt-2">
+                  <p>
+                    <span className="font-medium">Grade:</span> {submission.marks_obtained}/{material.assignment.total_marks}
+                  </p>
+                </div>
+              )}
+              
+              {submission.feedback && (
+                <div className="mt-2">
+                  <h5 className="font-medium text-xs mb-1">Feedback:</h5>
+                  <p className="bg-muted p-2 rounded text-xs">{submission.feedback}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {isAssignment && !submission && !deadlinePassed && (
+          <div className="border-t pt-4 mt-4">
+            <h4 className="font-medium mb-2">Submit Your Work</h4>
+            <div className="space-y-4">
+              <div>
+                <h5 className="text-sm font-medium mb-1">Text Submission (Optional)</h5>
+                <textarea
+                  className="w-full p-2 border rounded-md resize-y min-h-[100px] text-sm"
+                  placeholder="Enter your submission here..."
+                  value={submissionContent}
+                  onChange={(e) => setSubmissionContent(e.target.value)}
+                ></textarea>
+              </div>
+              
+              <div>
+                <h5 className="text-sm font-medium mb-1">File Upload (Optional)</h5>
+                <div className="border rounded-md p-4">
+                  {submissionFile ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        <span className="text-sm truncate max-w-[200px]">{submissionFile.name}</span>
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setSubmissionFile(null)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <Input
+                        type="file"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setSubmissionFile(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                        id="submission-upload"
+                      />
+                      <label htmlFor="submission-upload" className="cursor-pointer">
+                        <div className="flex flex-col items-center justify-center py-4">
+                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Click to upload a document
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleSubmissionUpload} 
+                disabled={uploading || (!submissionContent && !submissionFile)}
+              >
+                {uploading ? 'Submitting...' : 'Submit Assignment'}
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {isAssignment && submission && user?.id !== submission.student_id && (
+          <div className="border-t pt-4 mt-4">
+            <h4 className="font-medium mb-2">Grade Submission</h4>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Marks (out of {material.assignment.total_marks})</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={material.assignment.total_marks}
+                  value={marksObtained}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMarksObtained(val === '' ? '' : Number(val));
+                  }}
+                  className="max-w-[100px]"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-1 block">Feedback</label>
+                <textarea
+                  className="w-full p-2 border rounded-md resize-y min-h-[100px] text-sm"
+                  placeholder="Provide feedback to the student..."
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                ></textarea>
+              </div>
+              
+              <Button 
+                onClick={handleGradeSubmission} 
+                disabled={isGrading || marksObtained === ''}
+              >
+                {isGrading ? 'Saving...' : 'Save Grade'}
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
+      <CardFooter className="text-xs text-muted-foreground">
+        Added on {format(new Date(material.created_at), 'PPP')}
+      </CardFooter>
     </Card>
   );
-};
-
-export default ChapterMaterialViewer;
+}
