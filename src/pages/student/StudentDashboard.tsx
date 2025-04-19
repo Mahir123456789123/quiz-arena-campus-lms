@@ -28,20 +28,23 @@ const StudentDashboard = () => {
     setIsLoading(true);
     
     try {
-      // First, get the course ID using the code
+      // Fetch the course using trimmed and normalized code (case insensitive)
       const { data: courses, error: courseError } = await supabase
         .from('courses')
-        .select('id')
-        .eq('code', courseCode.trim());
+        .select('id, title')
+        .ilike('code', courseCode.trim());
 
       if (courseError) throw courseError;
       
+      // Check if any courses were found with this code
       if (!courses || courses.length === 0) {
         toast.error('Course not found. Please check the code and try again.');
+        setIsLoading(false);
         return;
       }
 
       const course = courses[0];
+      console.log('Found course:', course);
 
       // Check if the user is already enrolled in this course
       const { data: existingEnrollment, error: enrollmentCheckError } = await supabase
@@ -54,6 +57,7 @@ const StudentDashboard = () => {
       
       if (existingEnrollment && existingEnrollment.length > 0) {
         toast.error('You are already enrolled in this course');
+        setIsLoading(false);
         return;
       }
 
@@ -67,7 +71,7 @@ const StudentDashboard = () => {
 
       if (enrollError) throw enrollError;
 
-      toast.success('Successfully enrolled in course');
+      toast.success(`Successfully enrolled in "${course.title}"`);
       setCourseCode('');
       refetchEnrollments();
     } catch (error: any) {
