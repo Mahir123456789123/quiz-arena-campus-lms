@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Content } from '@/types/content';
 import { toast } from 'sonner';
+import TextToSpeech from "@/components/ui/text-to-speech";
 
 const ContentCard = ({ content }: { content: Content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -88,9 +88,12 @@ const ContentCard = ({ content }: { content: Content }) => {
         
         {content.article_snippet && (
           <div className="mt-2">
-            <p className={`text-sm text-muted-foreground ${!isExpanded && 'line-clamp-2'}`}>
-              {content.article_snippet}
-            </p>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className={`text-sm text-muted-foreground ${!isExpanded && 'line-clamp-2'}`}>
+                {content.article_snippet}
+              </p>
+              <TextToSpeech text={content.article_snippet} />
+            </div>
             {content.article_snippet.length > 120 && (
               <Button 
                 variant="ghost" 
