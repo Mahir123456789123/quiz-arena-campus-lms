@@ -1,406 +1,302 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Progress } from '@/components/ui/progress';
-import { ArrowRight, Clock } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { QuizQuestion, QuizParticipant } from '@/types/quiz';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import type { Quiz, QuizQuestion, QuizRoom, QuizParticipant } from '@/types/quiz';
 
 const QuizTaking = () => {
-  const { roomId } = useParams<{ roomId: string }>();
+  const { user } = useAuth();
+  const { roomId } = useParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [remainingTime, setRemainingTime] = useState<number | null>(null);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+  const [room, setRoom] = useState<QuizRoom | null>(null);
   const [participants, setParticipants] = useState<QuizParticipant[]>([]);
-  const [roomStatus, setRoomStatus] = useState<string | null>(null);
-  const isInstructor = profile?.role === 'instructor' || profile?.role === 'admin';
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch room details, including quiz information
-  const { data: room, isLoading: isRoomLoading } = useQuery({
-    queryKey: ['quiz-room', roomId],
-    queryFn: async () => {
-      if (!roomId) return null;
-      
-      const { data, error } = await supabase
-        .from('quiz_rooms')
-        .select(`
-          *,
-          quiz:quizzes (
-            *
-          )
-        `)
-        .eq('id', roomId)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!roomId,
-  });
-
-  // Fetch questions for the quiz
-  const { data: questions = [], isLoading: isQuestionsLoading } = useQuery({
-    queryKey: ['quiz-questions', room?.quiz_id],
-    queryFn: async () => {
-      if (!room?.quiz_id) return [];
-      
-      const { data, error } = await supabase
-        .from('quiz_questions')
-        .select('*')
-        .eq('quiz_id', room.quiz_id)
-        .order('order_position', { ascending: true });
-      
-      if (error) throw error;
-      return data as QuizQuestion[];
-    },
-    enabled: !!room?.quiz_id && hasStarted,
-  });
-
-  // Fetch participants
   useEffect(() => {
-    if (roomId) {
-      const fetchParticipants = async () => {
-        const { data, error } = await supabase
+    if (!roomId) return;
+
+    const fetchQuizData = async () => {
+      try {
+        // Fetch room details
+        const { data: roomData, error: roomError } = await supabase
+          .from('quiz_rooms')
+          .select('*')
+          .eq('id', roomId)
+          .single();
+
+        if (roomError) throw roomError;
+        setRoom(roomData as QuizRoom);
+
+        // Fetch quiz details
+        const { data: quizData, error: quizError } = await supabase
+          .from('quizzes')
+          .select('*')
+          .eq('id', roomData.quiz_id)
+          .single();
+
+        if (quizError) throw quizError;
+        setQuiz(quizData as Quiz);
+
+        // Fetch questions
+        const { data: questionData, error: questionError } = await supabase
+          .from('quiz_questions')
+          .select('*')
+          .eq('quiz_id', roomData.quiz_id)
+          .order('order_position', { ascending: true });
+
+        if (questionError) throw questionError;
+        setQuestions(questionData as QuizQuestion[]);
+
+        // Fetch participants with their profiles
+        const { data: participantData, error: participantError } = await supabase
           .from('quiz_participants')
           .select(`
             *,
-            profile:profiles (
-              id,
-              full_name,
-              avatar_url
-            )
+            profile:profiles(*)
           `)
-          .eq('room_id', roomId)
-          .order('score', { ascending: false });
-          
-        if (!error && data) {
-          setParticipants(data as QuizParticipant[]);
-        }
-      };
-      
-      fetchParticipants();
-      
-      // Set up real-time subscription for participants
-      const participantsSubscription = supabase
-        .channel('participants_changes')
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'quiz_participants', filter: `room_id=eq.${roomId}` },
-          () => {
-            fetchParticipants();
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(participantsSubscription);
-      };
-    }
-  }, [roomId]);
+          .eq('room_id', roomId);
 
-  // Set up real-time subscription for room status
-  useEffect(() => {
-    if (roomId) {
-      const fetchRoomStatus = async () => {
-        const { data, error } = await supabase
-          .from('quiz_rooms')
-          .select('status, started_at')
-          .eq('id', roomId)
-          .single();
-          
-        if (!error && data) {
-          setRoomStatus(data.status);
-          if (data.status === 'active' && data.started_at) {
-            setHasStarted(true);
+        if (participantError) throw participantError;
+        setParticipants(participantData as QuizParticipant[]);
+
+        setTimeRemaining(quizData.time_limit * 60); // Time in seconds
+        setIsLoading(false);
+      } catch (error: any) {
+        toast.error('Failed to load quiz data');
+        console.error(error);
+      }
+    };
+
+    fetchQuizData();
+
+    // Set up realtime subscription for participants
+    const participantsChannel = supabase
+      .channel('quiz_participants_changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'quiz_participants' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+            fetchUpdatedParticipants();
           }
         }
-      };
-      
-      fetchRoomStatus();
-      
-      const roomSubscription = supabase
-        .channel('room_status_changes')
-        .on('postgres_changes', 
-          { event: 'UPDATE', schema: 'public', table: 'quiz_rooms', filter: `id=eq.${roomId}` },
-          (payload) => {
-            const newStatus = payload.new.status;
-            setRoomStatus(newStatus);
-            
-            // If the room status changes to active, start the quiz
-            if (newStatus === 'active' && payload.new.started_at) {
-              setHasStarted(true);
-              toast.success('The quiz has started!');
-            }
-            
-            // If the room status changes to completed, show results
-            if (newStatus === 'completed') {
-              toast.info('The quiz has ended. Viewing results...');
-              // TODO: Navigate to results page or show results
-            }
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(roomSubscription);
-      };
-    }
-  }, [roomId]);
+      )
+      .subscribe();
 
-  // Set up timer
-  useEffect(() => {
-    if (hasStarted && room?.quiz?.time_limit) {
-      const timeLimit = room.quiz.time_limit * 60; // Convert to seconds
-      setRemainingTime(timeLimit);
-      
-      const timer = setInterval(() => {
-        setRemainingTime((prevTime) => {
-          if (prevTime === null || prevTime <= 1) {
-            clearInterval(timer);
+    // Set up a timer if the quiz is active
+    let timerInterval: NodeJS.Timeout;
+    if (room?.status === 'active') {
+      timerInterval = setInterval(() => {
+        setTimeRemaining((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(timerInterval);
+            finishQuiz();
             return 0;
           }
           return prevTime - 1;
         });
       }, 1000);
-      
-      return () => clearInterval(timer);
     }
-  }, [hasStarted, room?.quiz?.time_limit]);
 
-  // Format time
-  const formatTime = (seconds: number | null) => {
-    if (seconds === null) return '00:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return () => {
+      supabase.removeChannel(participantsChannel);
+      clearInterval(timerInterval);
+    };
+  }, [roomId, room?.status]);
+
+  const fetchUpdatedParticipants = async () => {
+    try {
+      const { data: participantData, error: participantError } = await supabase
+        .from('quiz_participants')
+        .select(`
+          *,
+          profile:profiles(*)
+        `)
+        .eq('room_id', roomId);
+
+      if (participantError) throw participantError;
+      setParticipants(participantData as QuizParticipant[]);
+    } catch (error: any) {
+      console.error('Failed to update participants', error);
+    }
   };
 
-  const handleOptionSelect = (optionIndex: number) => {
-    setSelectedOption(optionIndex);
+  const handleAnswerSelect = (answerIndex: number) => {
+    setSelectedAnswer(answerIndex);
   };
 
-  const handleSubmitAnswer = async () => {
-    if (selectedOption === null) {
-      toast.error('Please select an option');
+  const goToNextQuestion = async () => {
+    if (selectedAnswer === null) {
+      toast.error('Please select an answer');
       return;
     }
-    
-    setIsSubmitting(true);
-    
+
+    // Check if the answer is correct
+    if (questions[currentQuestionIndex].correct_answer === selectedAnswer) {
+      setScore(prevScore => prevScore + 1);
+    }
+
+    setSelectedAnswer(null); // Reset selected answer
+
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+    } else {
+      // If it's the last question, finish the quiz
+      await finishQuiz();
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  const finishQuiz = async () => {
+    setIsFinished(true);
     try {
-      const currentQ = questions[currentQuestion];
-      const isCorrect = selectedOption === currentQ.correct_answer;
-      
-      // Record the answer
-      await supabase.rpc('increment', {
-        row_id: participants.find(p => p.user_id === user?.id)?.id,
-        inc: isCorrect ? 1 : 0
-      });
-      
-      if (isCorrect) {
-        toast.success('Correct answer!');
-      } else {
-        toast.error(`Incorrect. The correct answer was: ${currentQ.options[currentQ.correct_answer]}`);
-      }
-      
-      // Move to next question or end quiz
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedOption(null);
-      } else {
-        toast.info('You have completed the quiz!');
-        // TODO: Show completion screen or navigate to results
-      }
-    } catch (error) {
-      console.error('Error submitting answer:', error);
-      toast.error('Failed to submit answer. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+      // Update participant's score and status
+      const { error } = await supabase
+        .from('quiz_participants')
+        .update({
+          score: score,
+          status: 'finished'
+        })
+        .eq('room_id', roomId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast.success('Quiz finished!');
+    } catch (error: any) {
+      toast.error('Failed to submit quiz');
+      console.error(error);
     }
   };
 
   const startQuiz = async () => {
-    if (!isInstructor) {
-      toast.error('Only the instructor can start the quiz');
-      return;
-    }
-    
     try {
       const { error } = await supabase
         .from('quiz_rooms')
-        .update({ 
+        .update({
           status: 'active',
-          started_at: new Date().toISOString() 
+          started_at: new Date().toISOString()
         })
-        .eq('id', roomId);
-        
+        .eq('id', roomId)
+        .eq('host_id', user?.id); // Make sure only the host can start the quiz
+
       if (error) throw error;
-      
-      setHasStarted(true);
+
       toast.success('Quiz started!');
-    } catch (error) {
-      console.error('Error starting quiz:', error);
+    } catch (error: any) {
       toast.error('Failed to start quiz');
+      console.error(error);
     }
   };
 
-  if (isRoomLoading) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <Skeleton className="h-8 w-1/3" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-6 w-full mb-4" />
-            <Skeleton className="h-24 w-full mb-6" />
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (isLoading) {
+    return <div className="container mx-auto">Loading...</div>;
   }
 
-  if (!room) {
-    return (
-      <div className="container mx-auto py-8 text-center">
-        <h2 className="text-2xl font-bold mb-4">Quiz Room Not Found</h2>
-        <p className="mb-6">The quiz room you're looking for doesn't exist or has ended.</p>
-        <Button onClick={() => navigate('/quiz-battle')}>
-          Back to Quiz Battle
-        </Button>
-      </div>
-    );
+  if (!quiz || !room) {
+    return <div className="container mx-auto">Quiz not found</div>;
   }
 
-  // Waiting room
-  if (!hasStarted) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center text-2xl">Waiting for Quiz to Start</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-6">
-              <Badge variant="outline" className="mb-2">Room Code: {room.room_code}</Badge>
-              <h3 className="text-xl font-semibold mb-2">{room.quiz?.title}</h3>
-              <p className="text-muted-foreground">
-                {room.quiz?.question_count} questions • {room.quiz?.time_limit} minutes • {room.quiz?.difficulty} difficulty
-              </p>
-            </div>
-            
-            <div className="border rounded-lg p-4 mb-6">
-              <h4 className="font-semibold mb-2">Participants ({participants.length})</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span>{participant.profile?.full_name || 'Anonymous'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {isInstructor && room.host_id === user?.id && (
-              <div className="text-center">
-                <Button onClick={startQuiz} size="lg">
-                  Start Quiz
-                </Button>
-              </div>
-            )}
-            
-            {!isInstructor && (
-              <div className="text-center text-muted-foreground">
-                <Clock className="inline-block mr-2" size={18} />
-                Waiting for the instructor to start the quiz...
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Active quiz
-  if (questions.length === 0 || isQuestionsLoading) {
-    return (
-      <div className="container mx-auto py-8 text-center">
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle>Loading Questions...</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const currentQ = questions[currentQuestion];
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="container mx-auto py-8">
-      <Card className="w-full max-w-3xl mx-auto">
+    <div className="container mx-auto py-6">
+      <Card className="max-w-4xl mx-auto">
         <CardHeader>
-          <div className="flex justify-between items-center mb-2">
-            <Badge variant="outline">
-              Question {currentQuestion + 1}/{questions.length}
-            </Badge>
-            {remainingTime !== null && (
-              <Badge variant={remainingTime < 60 ? "destructive" : "outline"}>
-                <Clock className="mr-1 h-4 w-4" />
-                {formatTime(remainingTime)}
-              </Badge>
-            )}
-          </div>
-          <Progress value={progress} className="h-2" />
+          <CardTitle>{quiz.title}</CardTitle>
+          <CardDescription>{quiz.description}</CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
-          <h3 className="text-xl font-semibold mb-6">{currentQ.question_text}</h3>
-          
-          <div className="space-y-3">
-            {currentQ.options.map((option, index) => (
-              <Button
-                key={index}
-                variant={selectedOption === index ? "default" : "outline"}
-                className="w-full justify-start text-left p-4 h-auto"
-                onClick={() => handleOptionSelect(index)}
-              >
-                <span className="mr-2">{String.fromCharCode(65 + index)}.</span>
-                {option}
-              </Button>
-            ))}
-          </div>
+        <CardContent>
+          {room.status === 'waiting' && room.host_id === user?.id ? (
+            <div className="text-center">
+              <p>Waiting for the host to start the quiz...</p>
+              <Button onClick={startQuiz}>Start Quiz</Button>
+            </div>
+          ) : (
+            <>
+              {isFinished ? (
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-4">Quiz Complete!</h2>
+                  <p className="text-lg">Your Score: {score} / {questions.length}</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <Progress value={(currentQuestionIndex + 1) / questions.length * 100} />
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+                      <span>Time Remaining: {formatTime(timeRemaining)}</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold mb-2">{currentQuestion.question_text}</h3>
+                    <ul className="space-y-2">
+                      {currentQuestion.options.map((option, index) => (
+                        <li key={index}>
+                          <Button
+                            variant={selectedAnswer === index ? 'secondary' : 'outline'}
+                            className="w-full"
+                            onClick={() => handleAnswerSelect(index)}
+                          >
+                            {option}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Button onClick={goToNextQuestion} className="w-full">
+                    {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                  </Button>
+                </>
+              )}
+            </>
+          )}
         </CardContent>
         <CardFooter>
-          <Button 
-            className="ml-auto"
-            onClick={handleSubmitAnswer}
-            disabled={selectedOption === null || isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Answer'}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <h4 className="text-sm font-semibold">Participants</h4>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead className="text-right">Score</TableHead>
+                <TableHead className="text-right">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {participants.map(participant => (
+                <TableRow key={participant.id}>
+                  <TableCell>{participant.profile?.full_name || 'Unknown'}</TableCell>
+                  <TableCell className="text-right">{participant.score}</TableCell>
+                  <TableCell className="text-right">{participant.status}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardFooter>
       </Card>
     </div>

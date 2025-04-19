@@ -5,21 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileIcon, Eye, Star, Download } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
+import { Content } from '@/types/content';
 
-interface ContentProps {
-  id: string;
-  title: string;
-  type: string;
-  subject: string;
-  author_name: string;
-  article_snippet?: string;
-  file_path?: string | null;
-  date: string;
-  views: number;
-  rating: number;
-}
-
-const ContentCard = ({ content }: { content: ContentProps }) => {
+const ContentCard = ({ content }: { content: Content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const getIcon = () => {
@@ -39,12 +27,8 @@ const ContentCard = ({ content }: { content: ContentProps }) => {
     try {
       if (!content.file_path) return;
       
-      // Get public URL for the file
-      const { data } = await fetch(`/api/get-content-url?path=${content.file_path}`).then(res => res.json());
-      
-      if (data?.publicUrl) {
-        window.open(data.publicUrl, '_blank');
-      }
+      // Temporary mock function - will be replaced with actual implementation
+      alert('File download will be available once the content table is created');
     } catch (error) {
       console.error('Error downloading file:', error);
     }

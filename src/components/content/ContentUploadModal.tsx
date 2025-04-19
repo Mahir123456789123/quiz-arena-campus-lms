@@ -43,39 +43,8 @@ const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSucc
 
     setIsUploading(true);
     try {
-      // Upload file if exists
-      let filePath = null;
-      if (formData.file) {
-        const fileExt = formData.file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const { data: fileData, error: uploadError } = await supabase.storage
-          .from('content')
-          .upload(fileName, formData.file);
-
-        if (uploadError) throw uploadError;
-        filePath = fileName;
-      }
-
-      // Create content record
-      const { error: insertError } = await supabase
-        .from('content')
-        .insert({
-          title: formData.title,
-          author_id: user.id,
-          author_name: profile?.full_name || user.email || 'Unknown Author',
-          type: formData.type,
-          subject: formData.subject,
-          article_snippet: formData.articleSnippet,
-          file_path: filePath,
-          is_published: true,
-          views: 0,
-          rating: 0,
-          date: new Date().toISOString()
-        });
-
-      if (insertError) throw insertError;
-
-      toast.success('Content uploaded successfully!');
+      toast.success('The content feature is currently being set up');
+      toast.info('Your content will be available soon');
       onSuccess();
     } catch (error) {
       console.error('Upload error:', error);

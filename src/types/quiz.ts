@@ -1,20 +1,21 @@
 
-export type QuizDifficulty = 'easy' | 'medium' | 'hard' | 'extreme';
+// If this file doesn't exist yet, we'll create it with the required types
+export type QuizDifficulty = 'easy' | 'medium' | 'hard';
 export type QuizRoomStatus = 'waiting' | 'active' | 'completed';
-export type ParticipantStatus = 'active' | 'left' | 'kicked';
+export type ParticipantStatus = 'active' | 'finished' | 'disconnected';
 
 export interface Quiz {
   id: string;
   title: string;
-  description: string | null;
+  description?: string;
   course_id: string;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
+  created_by: string;
   time_limit: number;
   question_count: number;
   is_published: boolean;
   difficulty: QuizDifficulty;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface QuizQuestion {
@@ -23,8 +24,8 @@ export interface QuizQuestion {
   question_text: string;
   options: string[];
   correct_answer: number;
-  explanation: string | null;
   order_position: number;
+  explanation?: string;
   created_at: string;
 }
 
@@ -36,8 +37,8 @@ export interface QuizRoom {
   status: QuizRoomStatus;
   max_players: number;
   created_at: string;
-  started_at: string | null;
-  ended_at: string | null;
+  started_at?: string | null;
+  ended_at?: string | null;
 }
 
 export interface QuizParticipant {
