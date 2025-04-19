@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Clock, Award, BarChart3, PlayCircle } from 'lucide-react';
+import { BookOpen, Clock, Award, BarChart3, PlayCircle, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
@@ -14,6 +15,7 @@ import ProgressGraphs from '@/components/dashboard/ProgressGraphs';
 import { DeadlinesCalendar } from '@/components/dashboard/DeadlinesCalendar';
 import PomodoroTimer from '@/components/dashboard/PomodoroTimer';
 import TodoList from '@/components/dashboard/TodoList';
+import { CreateMeetingButton } from '@/components/video/CreateMeetingButton';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -91,6 +93,21 @@ const StudentDashboard = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <PomodoroTimer />
           <TodoList />
+          <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Video className="h-5 w-5 text-primary" />
+                Upcoming Meetings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">No scheduled meetings</p>
+              <CreateMeetingButton className="w-full" />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card className="bg-gradient-to-br from-card to-background border-none shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">

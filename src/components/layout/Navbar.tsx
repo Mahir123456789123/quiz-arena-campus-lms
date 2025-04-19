@@ -1,5 +1,6 @@
+
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Book, Search, User, LogOut, Moon, Sun } from "lucide-react";
+import { Bell, Book, Search, User, LogOut, Moon, Sun, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -15,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CreateMeetingButton } from "@/components/video/CreateMeetingButton";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -59,15 +61,14 @@ const Navbar = () => {
     <header className="bg-card sticky top-0 z-50 shadow-sm border-b">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-        <a
-  href="#hero"
-  onClick={handlePadhleBhaiClick}
-  className="flex items-center gap-2"
->
-  <Book className="h-6 w-6 text-edu-primary" />
-  <span className="text-xl font-bold text-foreground">PadhleBhai</span>
-</a>
-
+          <a
+            href="#hero"
+            onClick={handlePadhleBhaiClick}
+            className="flex items-center gap-2"
+          >
+            <Book className="h-6 w-6 text-edu-primary" />
+            <span className="text-xl font-bold text-foreground">PadhleBhai</span>
+          </a>
         </div>
 
         <div className="hidden md:flex items-center space-x-6">
@@ -98,6 +99,8 @@ const Navbar = () => {
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             </div>
           </form>
+
+          {user && <CreateMeetingButton />}
 
           <Button
             variant="ghost"
