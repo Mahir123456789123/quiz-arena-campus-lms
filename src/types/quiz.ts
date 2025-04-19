@@ -1,4 +1,3 @@
-
 // If this file doesn't exist yet, we'll create it with the required types
 export type QuizDifficulty = 'easy' | 'medium' | 'hard';
 export type QuizRoomStatus = 'waiting' | 'active' | 'completed';

@@ -70,41 +70,24 @@ const QuizTaking = () => {
         const { data: participantData, error: participantError } = await supabase
           .from('quiz_participants')
           .select(`
-            id,
-            room_id,
-            user_id,
-            score,
-            status,
-            joined_at,
-            user_id
+            *,
+            profile:profiles(id, full_name, avatar_url)
           `)
           .eq('room_id', roomId);
 
         if (participantError) throw participantError;
-
-        // For each participant, fetch their profile separately
-        if (participantData) {
-          const enhancedParticipants = await Promise.all(
-            participantData.map(async (participant) => {
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('id, full_name, avatar_url')
-                .eq('id', participant.user_id)
-                .single();
-              
-              return {
-                ...participant,
-                profile: profileData || { 
-                  id: participant.user_id, 
-                  full_name: 'Unknown', 
-                  avatar_url: null 
-                }
-              } as QuizParticipant;
-            })
-          );
-          
-          setParticipants(enhancedParticipants);
-        }
+        
+        // Type assertion with the correct type after validating the data
+        const typedParticipants = participantData?.map(participant => ({
+          ...participant,
+          profile: participant.profile || {
+            id: participant.user_id,
+            full_name: 'Unknown',
+            avatar_url: null
+          }
+        })) as QuizParticipant[];
+        
+        setParticipants(typedParticipants);
 
         setTimeRemaining(quizData.time_limit * 60); // Time in seconds
         setIsLoading(false);
@@ -155,40 +138,24 @@ const QuizTaking = () => {
       const { data: participantData, error: participantError } = await supabase
         .from('quiz_participants')
         .select(`
-          id,
-          room_id,
-          user_id,
-          score,
-          status,
-          joined_at
+          *,
+          profile:profiles(id, full_name, avatar_url)
         `)
         .eq('room_id', roomId);
 
       if (participantError) throw participantError;
 
-      // For each participant, fetch their profile separately
-      if (participantData) {
-        const enhancedParticipants = await Promise.all(
-          participantData.map(async (participant) => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('id, full_name, avatar_url')
-              .eq('id', participant.user_id)
-              .single();
-            
-            return {
-              ...participant,
-              profile: profileData || { 
-                id: participant.user_id, 
-                full_name: 'Unknown', 
-                avatar_url: null 
-              }
-            } as QuizParticipant;
-          })
-        );
-        
-        setParticipants(enhancedParticipants);
-      }
+      // Type assertion with the correct type after validating the data
+      const typedParticipants = participantData?.map(participant => ({
+        ...participant,
+        profile: participant.profile || {
+          id: participant.user_id,
+          full_name: 'Unknown',
+          avatar_url: null
+        }
+      })) as QuizParticipant[];
+      
+      setParticipants(typedParticipants);
     } catch (error: any) {
       console.error('Failed to update participants', error);
     }
