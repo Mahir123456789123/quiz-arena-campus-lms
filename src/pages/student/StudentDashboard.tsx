@@ -26,15 +26,21 @@ const StudentDashboard = () => {
     }
     
     setIsLoading(true);
+    console.log('Attempting to join course with code:', courseCode.trim());
     
     try {
-      // Fetch the course using trimmed and normalized code (case insensitive)
+      // Fetch the course using trimmed code (case insensitive)
       const { data: courses, error: courseError } = await supabase
         .from('courses')
-        .select('id, title')
+        .select('id, title, code')
         .ilike('code', courseCode.trim());
 
-      if (courseError) throw courseError;
+      if (courseError) {
+        console.error('Error fetching course:', courseError);
+        throw courseError;
+      }
+      
+      console.log('Found courses:', courses);
       
       // Check if any courses were found with this code
       if (!courses || courses.length === 0) {
@@ -53,7 +59,12 @@ const StudentDashboard = () => {
         .eq('student_id', user?.id)
         .eq('course_id', course.id);
         
-      if (enrollmentCheckError) throw enrollmentCheckError;
+      if (enrollmentCheckError) {
+        console.error('Error checking enrollment:', enrollmentCheckError);
+        throw enrollmentCheckError;
+      }
+      
+      console.log('Existing enrollment check:', existingEnrollment);
       
       if (existingEnrollment && existingEnrollment.length > 0) {
         toast.error('You are already enrolled in this course');
@@ -61,7 +72,7 @@ const StudentDashboard = () => {
         return;
       }
 
-      // Then create the enrollment
+      // Create the enrollment
       const { error: enrollError } = await supabase
         .from('enrollments')
         .insert({
@@ -69,8 +80,12 @@ const StudentDashboard = () => {
           course_id: course.id
         });
 
-      if (enrollError) throw enrollError;
+      if (enrollError) {
+        console.error('Error creating enrollment:', enrollError);
+        throw enrollError;
+      }
 
+      console.log('Successfully enrolled in course:', course.title);
       toast.success(`Successfully enrolled in "${course.title}"`);
       setCourseCode('');
       refetchEnrollments();
