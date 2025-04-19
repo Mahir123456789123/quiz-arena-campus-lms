@@ -201,6 +201,7 @@ export type Database = {
           author_name: string
           created_at: string | null
           date: string | null
+          downloads: number
           file_path: string | null
           id: string
           is_published: boolean
@@ -217,6 +218,7 @@ export type Database = {
           author_name: string
           created_at?: string | null
           date?: string | null
+          downloads?: number
           file_path?: string | null
           id?: string
           is_published?: boolean
@@ -233,6 +235,7 @@ export type Database = {
           author_name?: string
           created_at?: string | null
           date?: string | null
+          downloads?: number
           file_path?: string | null
           id?: string
           is_published?: boolean

@@ -16,4 +16,5 @@ export interface Content {
   subject: string;
   updated_at: string;
   views: number;
+  downloads?: number;
 }
