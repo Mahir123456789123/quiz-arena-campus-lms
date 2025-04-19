@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,7 +28,7 @@ import SearchResults from "./pages/SearchResults";
 
 const queryClient = new QueryClient();
 
-function App() {
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -65,6 +64,6 @@ function App() {
       </BrowserRouter>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;
