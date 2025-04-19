@@ -4,6 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 
+export interface ChapterMaterial {
+  id: string;
+  chapter_id: string;
+  title: string;
+  type: 'text' | 'file' | 'video';
+  content?: string;
+  url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useCourseChapters = (courseId: string) => {
   const { user } = useAuth();
 
@@ -132,11 +143,11 @@ export const useChapterMutations = (courseId: string) => {
 
   const addMaterialMutation = useMutation({
     mutationFn: async (materialData: {
-      chapter_id: string,
-      title: string,
-      type: 'video' | 'file' | 'text',
-      content?: string,
-      url?: string
+      chapter_id: string;
+      title: string;
+      type: 'text' | 'file' | 'video';
+      content?: string;
+      url?: string;
     }) => {
       const { data, error } = await supabase
         .from('chapter_materials')

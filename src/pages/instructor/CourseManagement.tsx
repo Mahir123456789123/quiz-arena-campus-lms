@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -79,13 +78,6 @@ const CourseManagement = () => {
     fetchCourse();
   }, [courseId, navigate]);
 
-  // Create a wrapper function for addMaterial to handle the type mismatch
-  const handleAddMaterial = (chapterId: string) => {
-    // This function serves as a bridge between ContentTab and the actual addMaterial function
-    // in the future, we might want to open a form or dialog from here
-    return chapterId;
-  };
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -124,7 +116,7 @@ const CourseManagement = () => {
               chapters={chapters}
               createChapter={createChapter}
               deleteChapter={deleteChapter}
-              addMaterial={handleAddMaterial}
+              addMaterial={addMaterial}
               deleteMaterial={deleteMaterial}
             />
           </TabsContent>
