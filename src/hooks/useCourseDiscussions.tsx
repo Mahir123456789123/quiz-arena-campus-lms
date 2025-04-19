@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseDiscussion } from '@/types/course';
@@ -16,7 +15,7 @@ export const useCourseDiscussions = (courseId: string) => {
         .from('course_discussions')
         .select(`
           *,
-          profiles(full_name, avatar_url)
+          profiles:user_id (full_name, avatar_url)
         `)
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
@@ -41,7 +40,7 @@ export const useCourseDiscussions = (courseId: string) => {
         })
         .select(`
           *,
-          profiles(full_name, avatar_url)
+          profiles:user_id (full_name, avatar_url)
         `)
         .single();
 
