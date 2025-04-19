@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Trophy, Users } from "lucide-react";
+import { ArrowRight, BookOpen, Trophy, Users, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Boxes } from "@/components/ui/background-boxes";
 
@@ -30,6 +30,9 @@ const HeroSection = () => {
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/courses">Explore Courses</Link>
+              </Button>
+              <Button size="lg" variant="secondary" asChild>
+                <Link to="/chat">Chat Assistant <MessageSquare className="ml-2 h-5 w-5" /></Link>
               </Button>
             </div>
             
