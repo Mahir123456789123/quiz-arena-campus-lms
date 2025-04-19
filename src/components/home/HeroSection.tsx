@@ -8,7 +8,7 @@ const HeroSection = () => {
   return (
     <section className="relative bg-gradient-to-b from-slate-950 to-slate-900 h-screen flex items-center overflow-hidden">
       {/* Boxes Background */}
-      <Boxes className="opacity-20" />
+      <Boxes className="opacity-500" />
       
       {/* Content container with pointer-events-none to allow clicks to reach the boxes */}
       <div className="container relative z-10 mx-auto px-4 text-center text-white pointer-events-none">
