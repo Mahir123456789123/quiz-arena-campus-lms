@@ -47,7 +47,7 @@ const Dashboard = () => {
           if (error) throw error;
           
           console.log("User role from database:", data?.role);
-          setUserRole(data?.role || 'student');
+          setUserRole(data?.role as UserRole || 'student');
         }
       } catch (error) {
         console.error('Error fetching user role:', error);

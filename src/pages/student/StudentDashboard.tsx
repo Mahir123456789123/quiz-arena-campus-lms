@@ -16,24 +16,45 @@ const StudentDashboard = () => {
   const { user } = useAuth();
   const [courseCode, setCourseCode] = useState('');
   const { data: enrollments = [], refetch: refetchEnrollments } = useEnrollments();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleJoinCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (courseCode.length !== 3) {
-      toast.error('Course code must be 3 digits');
+    if (!courseCode.trim()) {
+      toast.error('Please enter a course code');
       return;
     }
     
+    setIsLoading(true);
+    
     try {
       // First, get the course ID using the code
-      const { data: course, error: courseError } = await supabase
+      const { data: courses, error: courseError } = await supabase
         .from('courses')
         .select('id')
-        .eq('code', courseCode)
-        .single();
+        .eq('code', courseCode.trim());
 
-      if (courseError || !course) {
-        throw new Error('Course not found');
+      if (courseError) throw courseError;
+      
+      if (!courses || courses.length === 0) {
+        toast.error('Course not found. Please check the code and try again.');
+        return;
+      }
+
+      const course = courses[0];
+
+      // Check if the user is already enrolled in this course
+      const { data: existingEnrollment, error: enrollmentCheckError } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', user?.id)
+        .eq('course_id', course.id);
+        
+      if (enrollmentCheckError) throw enrollmentCheckError;
+      
+      if (existingEnrollment && existingEnrollment.length > 0) {
+        toast.error('You are already enrolled in this course');
+        return;
       }
 
       // Then create the enrollment
@@ -50,7 +71,10 @@ const StudentDashboard = () => {
       setCourseCode('');
       refetchEnrollments();
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Error joining course:', error);
+      toast.error(error.message || 'Failed to join course');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,19 +124,19 @@ const StudentDashboard = () => {
                 <BookOpen className="h-5 w-5" />
                 <span>Join a Course</span>
               </CardTitle>
-              <CardDescription>Enter a 3-digit course code to enroll</CardDescription>
+              <CardDescription>Enter a course code to enroll</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleJoinCourse} className="flex gap-2">
                 <Input
                   value={courseCode}
                   onChange={(e) => setCourseCode(e.target.value)}
-                  placeholder="e.g. 123"
-                  maxLength={3}
-                  pattern="[0-9]{3}"
+                  placeholder="Enter course code"
                   className="flex-1"
                 />
-                <Button type="submit">Join</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Joining...' : 'Join'}
+                </Button>
               </form>
             </CardContent>
           </Card>

@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Book } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -60,6 +61,7 @@ const AuthPage = () => {
           password,
         });
         if (error) throw error;
+        navigate('/dashboard');
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -68,101 +70,105 @@ const AuthPage = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center">
-            <Book className="h-12 w-12 text-primary" />
-          </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isSignUp
-              ? 'Sign up to start learning'
-              : 'Sign in to access your account'}
-          </p>
-        </div>
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate('/dashboard');
+      }
+    };
+    checkSession();
+  }, [navigate]);
 
-        <form onSubmit={handleAuth} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            {isSignUp && (
-              <>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <Book className="h-6 w-6 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">EduHub</CardTitle>
+          <CardDescription>
+            {isSignUp ? "Create an account to get started" : "Sign in to your account"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleAuth}>
+            <div className="space-y-4">
+              {isSignUp && (
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="John Doe"
-                  />
+                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                 </div>
-                
+              )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  required 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                />
+              </div>
+              
+              {isSignUp && (
                 <div className="space-y-2">
-                  <Label>Role</Label>
-                  <RadioGroup value={role} onValueChange={setRole} className="flex flex-col space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="student" id="student" />
-                      <Label htmlFor="student">Student</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="instructor" id="instructor" />
-                      <Label htmlFor="instructor">Instructor</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="admin" id="admin" />
-                      <Label htmlFor="admin">Admin</Label>
-                    </div>
-                  </RadioGroup>
+                  <Label htmlFor="role">I am a</Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    id="role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as UserRole)}
+                    required
+                  >
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                  </select>
                 </div>
-              </>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              />
+              )}
+              
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
+              >
+                {isLoading 
+                  ? "Loading..." 
+                  : (isSignUp ? "Create account" : "Sign in")
+                }
+              </Button>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
-            </div>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4">
+          <div className="text-center text-sm">
+            {isSignUp 
+              ? "Already have an account? " 
+              : "Don't have an account? "
+            }
+            <button 
+              className="underline" 
+              onClick={() => setIsSignUp(!isSignUp)}
+            >
+              {isSignUp ? "Sign in" : "Create one"}
+            </button>
           </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-          </Button>
-        </form>
-
-        <div className="text-center">
-          <Button
-            variant="link"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm"
-          >
-            {isSignUp
-              ? 'Already have an account? Sign in'
-              : "Don't have an account? Sign up"}
-          </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
