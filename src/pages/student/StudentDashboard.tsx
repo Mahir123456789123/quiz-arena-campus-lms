@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -100,9 +99,11 @@ const StudentDashboard = () => {
                 Upcoming Meetings
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">No scheduled meetings</p>
-              <CreateMeetingButton className="w-full" />
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-muted-foreground">No scheduled meetings</p>
+                <CreateMeetingButton />
+              </div>
             </CardContent>
           </Card>
         </div>
