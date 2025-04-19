@@ -63,6 +63,15 @@ export const useCourseChapters = (courseId: string) => {
     return data[0];
   };
 
+  const deleteChapterMaterial = async (materialId: string) => {
+    const { error } = await supabase
+      .from('chapter_materials')
+      .delete()
+      .eq('id', materialId);
+
+    if (error) throw error;
+  };
+
   return useQuery({
     queryKey: ['course_chapters', courseId],
     queryFn: fetchChapters,
@@ -121,8 +130,57 @@ export const useChapterMutations = (courseId: string) => {
     }
   });
 
+  const addMaterialMutation = useMutation({
+    mutationFn: async (materialData: {
+      chapter_id: string,
+      title: string,
+      type: 'video' | 'file' | 'text',
+      content?: string,
+      url?: string
+    }) => {
+      const { data, error } = await supabase
+        .from('chapter_materials')
+        .insert(materialData)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course_chapters', courseId] });
+      toast.success('Material added successfully');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to add material');
+      console.error(error);
+    }
+  });
+
+  const deleteMaterialMutation = useMutation({
+    mutationFn: async (materialId: string) => {
+      const { error } = await supabase
+        .from('chapter_materials')
+        .delete()
+        .eq('id', materialId);
+        
+      if (error) throw error;
+      return materialId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course_chapters', courseId] });
+      toast.success('Material deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to delete material');
+      console.error(error);
+    }
+  });
+
   return {
     createChapter: createChapterMutation.mutate,
-    deleteChapter: deleteChapterMutation.mutate
+    deleteChapter: deleteChapterMutation.mutate,
+    addMaterial: addMaterialMutation.mutate,
+    deleteMaterial: deleteMaterialMutation.mutate
   };
 };

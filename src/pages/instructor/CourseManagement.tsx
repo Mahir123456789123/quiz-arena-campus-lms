@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BookOpen, Users, MessageSquare, FileText, 
-  PlusCircle, Trash2, PencilIcon, Send, UserCircle 
+  PlusCircle, Trash2, PencilIcon, Send, UserCircle,
+  ChevronDown, ChevronRight, Plus, Film, File
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCourseChapters, useChapterMutations } from '@/hooks/useCourseChapters';
@@ -25,6 +26,14 @@ import {
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import ChapterMaterialForm from '@/components/course/ChapterMaterialForm';
+import ChapterMaterialViewer from '@/components/course/ChapterMaterialViewer';
 
 const CourseManagement = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -35,6 +44,8 @@ const CourseManagement = () => {
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [comment, setComment] = useState('');
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
+  const [activeChapter, setActiveChapter] = useState<string | null>(null);
+  const [showMaterialForm, setShowMaterialForm] = useState(false);
 
   // Form for creating new chapters
   const chapterForm = useForm({
@@ -46,7 +57,7 @@ const CourseManagement = () => {
 
   // Course chapters
   const { data: chapters = [] } = useCourseChapters(courseId || '');
-  const { createChapter, deleteChapter } = useChapterMutations(courseId || '');
+  const { createChapter, deleteChapter, addMaterial, deleteMaterial } = useChapterMutations(courseId || '');
 
   // Course comments
   const { data: comments = [] } = useCourseComments(courseId || '');
@@ -120,6 +131,15 @@ const CourseManagement = () => {
 
   const handleDeleteChapter = (chapterId: string) => {
     deleteChapter(chapterId);
+  };
+
+  const handleAddMaterial = (chapterId: string) => {
+    setActiveChapter(chapterId);
+    setShowMaterialForm(true);
+  };
+
+  const handleDeleteMaterial = (materialId: string) => {
+    deleteMaterial(materialId);
   };
 
   const handleSendComment = (e: React.FormEvent) => {
@@ -235,47 +255,113 @@ const CourseManagement = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <Accordion type="single" collapsible className="space-y-3">
                       {chapters.map((chapter: any, index: number) => (
-                        <Card key={chapter.id}>
-                          <CardHeader className="p-4">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <CardTitle className="text-lg">
-                                  Chapter {index + 1}: {chapter.title}
-                                </CardTitle>
-                                {chapter.description && (
-                                  <CardDescription className="mt-1">
-                                    {chapter.description}
-                                  </CardDescription>
-                                )}
+                        <AccordionItem key={chapter.id} value={chapter.id} className="border rounded-md overflow-hidden">
+                          <div className="bg-card">
+                            <div className="flex justify-between items-start px-4 py-3">
+                              <div className="flex-1">
+                                <AccordionTrigger className="hover:no-underline py-0">
+                                  <div className="flex items-start gap-2 text-left">
+                                    <div>
+                                      <h3 className="font-medium">
+                                        Chapter {index + 1}: {chapter.title}
+                                      </h3>
+                                      {chapter.description && (
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                          {chapter.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </AccordionTrigger>
                               </div>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will permanently delete the chapter and all its content.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteChapter(chapter.id)}>
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddMaterial(chapter.id);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-1" /> Add Material
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete the chapter and all its content.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteChapter(chapter.id)}>
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
-                          </CardHeader>
-                        </Card>
+                          </div>
+                          <AccordionContent className="px-4 pb-4 pt-2">
+                            {showMaterialForm && activeChapter === chapter.id ? (
+                              <ChapterMaterialForm 
+                                chapterId={chapter.id}
+                                onSuccess={() => {
+                                  setShowMaterialForm(false);
+                                  setActiveChapter(null);
+                                }}
+                                onCancel={() => {
+                                  setShowMaterialForm(false);
+                                  setActiveChapter(null);
+                                }}
+                              />
+                            ) : (
+                              <>
+                                {chapter.chapter_materials && chapter.chapter_materials.length > 0 ? (
+                                  <div className="space-y-3">
+                                    {chapter.chapter_materials.map((material: any) => (
+                                      <ChapterMaterialViewer 
+                                        key={material.id}
+                                        material={material}
+                                        onDelete={handleDeleteMaterial}
+                                      />
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-center py-6">
+                                    <FileText className="h-8 w-8 mx-auto text-muted-foreground" />
+                                    <p className="mt-2 text-sm text-muted-foreground">
+                                      No materials in this chapter yet
+                                    </p>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="mt-2"
+                                      onClick={() => handleAddMaterial(chapter.id)}
+                                    >
+                                      <Plus className="h-4 w-4 mr-1" /> Add Material
+                                    </Button>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
                       ))}
-                    </div>
+                    </Accordion>
                   )}
                 </div>
               </CardContent>
