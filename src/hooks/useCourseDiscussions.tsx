@@ -16,14 +16,12 @@ export const useCourseDiscussions = (courseId: string) => {
         .from('course_discussions')
         .select(`
           *,
-          profiles(full_name, avatar_url)
+          profiles:user_id(full_name, avatar_url)
         `)
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // The discussions already have the profile data directly linked
       return data as CourseDiscussion[];
     }
   });
@@ -37,11 +35,13 @@ export const useCourseDiscussions = (courseId: string) => {
         .insert({
           content,
           course_id: courseId,
-          user_id: user.id
+          user_id: user.id,
+          likes: [],
+          dislikes: []
         })
         .select(`
           *,
-          profiles(full_name, avatar_url)
+          profiles:user_id(full_name, avatar_url)
         `)
         .single();
 
