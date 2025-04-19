@@ -608,6 +608,33 @@ export type Database = {
           },
         ]
       }
+      study_goals: {
+        Row: {
+          completed: boolean
+          created_at: string | null
+          id: string
+          text: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string | null
+          id?: string
+          text: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string | null
+          id?: string
+          text?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_sessions: {
         Row: {
           completedmodules: number
