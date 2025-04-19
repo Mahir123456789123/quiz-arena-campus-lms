@@ -43,7 +43,8 @@ const InstructorQuizCreator = () => {
           difficulty,
           course_id: courseId,
           created_by: user?.id,
-          question_count: questions.length
+          question_count: questions.length,
+          is_published: false
         })
         .select()
         .single();

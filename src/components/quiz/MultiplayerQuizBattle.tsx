@@ -61,7 +61,6 @@ const MultiplayerQuizBattle = () => {
 
     setIsLoading(true);
     try {
-      // Generate a random 6-character room code
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       
       const { data: room, error } = await supabase
@@ -78,7 +77,6 @@ const MultiplayerQuizBattle = () => {
 
       if (error) throw error;
 
-      // Join as host participant
       await supabase
         .from('quiz_participants')
         .insert({
@@ -118,7 +116,6 @@ const MultiplayerQuizBattle = () => {
         throw new Error('This room is no longer accepting participants');
       }
 
-      // Check if user is already a participant
       const { data: existingParticipant } = await supabase
         .from('quiz_participants')
         .select('*')
@@ -131,7 +128,6 @@ const MultiplayerQuizBattle = () => {
         return;
       }
 
-      // Join as participant
       const { error: participantError } = await supabase
         .from('quiz_participants')
         .insert({
@@ -160,7 +156,6 @@ const MultiplayerQuizBattle = () => {
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-8">Quiz Battles</h1>
       
-      {/* Create Room Section */}
       <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
         <h2 className="text-2xl font-bold mb-4">Create a Room</h2>
         <div className="space-y-4">
@@ -196,7 +191,6 @@ const MultiplayerQuizBattle = () => {
         </div>
       </div>
 
-      {/* Join Room Section */}
       <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
         <h2 className="text-2xl font-bold mb-4">Join a Room</h2>
         <div className="flex flex-col md:flex-row gap-4">
@@ -215,7 +209,6 @@ const MultiplayerQuizBattle = () => {
         </div>
       </div>
 
-      {/* Active Rooms Section */}
       <div className="bg-card p-6 rounded-lg shadow-sm">
         <h2 className="text-2xl font-bold mb-4">Active Rooms</h2>
         {activeRooms.length > 0 ? (

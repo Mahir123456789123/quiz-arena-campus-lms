@@ -19,7 +19,7 @@ export interface QuizQuestion {
   question_text: string;
   options: string[];
   correct_answer: number;
-  explanation: string;
+  explanation: string | null;
   order_position: number;
   created_at: string;
 }

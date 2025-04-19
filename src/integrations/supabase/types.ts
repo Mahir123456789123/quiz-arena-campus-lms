@@ -265,28 +265,163 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_participants: {
+        Row: {
+          id: string
+          joined_at: string | null
+          room_id: string
+          score: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          room_id: string
+          score?: number
+          status: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          room_id?: string
+          score?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_questions: {
+        Row: {
+          correct_answer: number
+          created_at: string | null
+          explanation: string | null
+          id: string
+          options: string[]
+          order_position: number
+          question_text: string
+          quiz_id: string
+        }
+        Insert: {
+          correct_answer: number
+          created_at?: string | null
+          explanation?: string | null
+          id?: string
+          options: string[]
+          order_position: number
+          question_text: string
+          quiz_id: string
+        }
+        Update: {
+          correct_answer?: number
+          created_at?: string | null
+          explanation?: string | null
+          id?: string
+          options?: string[]
+          order_position?: number
+          question_text?: string
+          quiz_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_rooms: {
+        Row: {
+          created_at: string | null
+          ended_at: string | null
+          host_id: string
+          id: string
+          max_players: number
+          quiz_id: string
+          room_code: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          ended_at?: string | null
+          host_id: string
+          id?: string
+          max_players?: number
+          quiz_id: string
+          room_code: string
+          started_at?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          ended_at?: string | null
+          host_id?: string
+          id?: string
+          max_players?: number
+          quiz_id?: string
+          room_code?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_rooms_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quizzes: {
         Row: {
           course_id: string
           created_at: string | null
+          created_by: string | null
           description: string | null
+          difficulty: string
           id: string
+          is_published: boolean
+          question_count: number
+          time_limit: number
           title: string
           updated_at: string | null
         }
         Insert: {
           course_id: string
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          difficulty?: string
           id?: string
+          is_published?: boolean
+          question_count?: number
+          time_limit?: number
           title: string
           updated_at?: string | null
         }
         Update: {
           course_id?: string
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          difficulty?: string
           id?: string
+          is_published?: boolean
+          question_count?: number
+          time_limit?: number
           title?: string
           updated_at?: string | null
         }
