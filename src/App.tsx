@@ -26,6 +26,7 @@ import ContactUs from "./pages/ContactUs";
 import TermsOfService from "./pages/TermsOfService";
 import NotificationsPage from "./pages/NotificationsPage";
 import SearchResults from "./pages/SearchResults";
+import HeroSection from "./components/home/HeroSection";
 
 const queryClient = new QueryClient();
 

@@ -98,9 +98,9 @@ const CoursesPreview = () => {
   return (
     <section className="w-full h-full py-20 px-4 md:px-6 bg-muted/30">
       <div className="container mx-auto">
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-1">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Featured Courses</h2>
+            <h2 className="text-3xl font-bold mb-1">Featured Courses</h2>
             <p className="text-muted-foreground text-lg">Start your learning journey with these popular courses</p>
           </div>
           <Button asChild variant="outline">
