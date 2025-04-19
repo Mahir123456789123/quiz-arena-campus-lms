@@ -26,6 +26,7 @@ import TermsOfService from "./pages/TermsOfService";
 import NotificationsPage from "./pages/NotificationsPage";
 import SearchResults from "./pages/SearchResults";
 import HeroSection from "./components/home/HeroSection";
+import VideoMeetingPage from "./pages/VideoMeetingPage";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => {
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
               <Route path="/search" element={<SearchResults />} />
+              <Route path="/meeting/:roomId" element={<ProtectedRoute><VideoMeetingPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ChatbotButton />
