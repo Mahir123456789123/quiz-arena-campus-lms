@@ -1,10 +1,12 @@
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from chatbot_logic import chatbot_with_data
 from config import SUPABASE_URL, SUPABASE_HEADERS
 import requests
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 def get_progress(student_id):
     try:
