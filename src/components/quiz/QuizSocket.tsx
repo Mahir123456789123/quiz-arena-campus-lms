@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { useQuizSocket } from '@/hooks/useQuizSocket';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Trophy } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth';
 
 interface QuizSocketProps {
   roomId: string;
