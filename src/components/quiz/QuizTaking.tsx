@@ -14,16 +14,8 @@ interface Question {
   answer: string;
 }
 
-const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [isFinished, setIsFinished] = useState(false);
-  const { profile } = useAuth();
-  const navigate = useNavigate();
-
-  // Hardcoded questions from the CSV for the specific room
-  const questions = [
+const quizData: Record<string, Question[]> = {
+  general: [
     {
       question: "What's the Paris capital of?",
       options: ["London", "Berlin", "Rome", "Paris"],
@@ -34,10 +26,53 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
       options: ["3", "4", "5", "6"],
       answer: "2"
     }
-  ];
+  ],
+  science: [
+    {
+      question: "Water is?",
+      options: ["H2O", "CO2", "O2", "NH3"],
+      answer: "1"
+    },
+    {
+      question: "Earth's radius in km?",
+      options: ["6000km", "6371km", "8000km", "5000km"],
+      answer: "2"
+    }
+  ],
+  history: [
+    {
+      question: "Who wrote Tom Sawyer?",
+      options: ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"],
+      answer: "4"
+    }
+  ],
+  geography: [
+    {
+      question: "What's the longest river?",
+      options: ["Amazon", "Nile", "Yangtze", "Mississippi"],
+      answer: "2"
+    }
+  ],
+  arts: [
+    {
+      question: "Who painted the Mona Lisa?",
+      options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Donatello"],
+      answer: "1"
+    }
+  ]
+};
+
+const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [isFinished, setIsFinished] = useState(false);
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+
+  const questions = quizData[roomId] || [];
 
   useEffect(() => {
-    // Only allow students to access the quiz
     if (profile?.role === 'instructor') {
       toast.error('Instructors cannot take quizzes');
       navigate('/quiz-battles');
@@ -54,7 +89,6 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
       return;
     }
 
-    // Check if answer is correct (answer in CSV is 1-based)
     if (selectedAnswer + 1 === parseInt(questions[currentQuestionIndex].answer)) {
       setScore(prevScore => prevScore + 1);
     }
@@ -76,7 +110,7 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
     <div className="container mx-auto py-6">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle>Quiz</CardTitle>
+          <CardTitle>{roomId.charAt(0).toUpperCase() + roomId.slice(1)} Quiz</CardTitle>
         </CardHeader>
         <CardContent>
           {isFinished ? (
