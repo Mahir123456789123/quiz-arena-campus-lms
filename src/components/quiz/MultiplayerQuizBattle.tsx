@@ -10,25 +10,47 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { Quiz, QuizRoom, QuizParticipant } from '@/types/quiz';
 
 const MultiplayerQuizBattle = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState('');
   const [availableQuizzes, setAvailableQuizzes] = useState<Quiz[]>([]);
   const [activeRooms, setActiveRooms] = useState<QuizRoom[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const isInstructor = profile?.role === 'instructor' || profile?.role === 'admin';
+  const isStudent = profile?.role === 'student';
 
   useEffect(() => {
     fetchQuizzes();
     fetchActiveRooms();
-  }, []);
+    // Set up a realtime subscription for active rooms
+    const roomsChannel = supabase
+      .channel('quiz_rooms_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'quiz_rooms' }, 
+        () => {
+          fetchActiveRooms();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(roomsChannel);
+    };
+  }, [profile?.role]);
 
   const fetchQuizzes = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('quizzes')
         .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
+        .eq('is_published', true);
+      
+      // If instructor, only show their own quizzes
+      if (isInstructor) {
+        query = query.eq('created_by', user?.id);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       
@@ -124,25 +146,103 @@ const MultiplayerQuizBattle = () => {
     }
   };
 
+  const startQuiz = async (quizId: string) => {
+    try {
+      // Generate a random 3-digit room code
+      const roomCode = Math.floor(100 + Math.random() * 900).toString();
+
+      // Create a quiz room
+      const { data: room, error: roomError } = await supabase
+        .from('quiz_rooms')
+        .insert({
+          quiz_id: quizId,
+          room_code: roomCode,
+          host_id: user?.id,
+          status: 'waiting',
+          max_players: 50
+        })
+        .select()
+        .single();
+
+      if (roomError) throw roomError;
+
+      toast.success(`Quiz room created! Room code: ${roomCode}`);
+      navigate(`/quiz-battle/${room.id}`);
+    } catch (error: any) {
+      toast.error('Failed to create quiz room');
+      console.error(error);
+    }
+  };
+
+  const startExistingRoom = async (roomId: string) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_rooms')
+        .update({ 
+          status: 'active',
+          started_at: new Date().toISOString() 
+        })
+        .eq('id', roomId)
+        .eq('host_id', user?.id); // Make sure only the host can start the quiz
+
+      if (error) throw error;
+
+      toast.success('Quiz started!');
+      navigate(`/quiz-battle/${roomId}`);
+    } catch (error: any) {
+      toast.error('Failed to start quiz');
+      console.error(error);
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
-      <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
-        <h2 className="text-2xl font-bold mb-4">Join a Quiz</h2>
-        <div className="flex flex-col md:flex-row gap-4">
-          <Input
-            placeholder="Enter room code"
-            value={roomCode}
-            onChange={e => setRoomCode(e.target.value)}
-            className="md:w-64"
-          />
-          <Button 
-            onClick={() => joinRoom(roomCode)}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Joining...' : 'Join Room'}
-          </Button>
+      {isStudent && (
+        <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
+          <h2 className="text-2xl font-bold mb-4">Join a Quiz</h2>
+          <div className="flex flex-col md:flex-row gap-4">
+            <Input
+              placeholder="Enter room code"
+              value={roomCode}
+              onChange={e => setRoomCode(e.target.value)}
+              className="md:w-64"
+            />
+            <Button 
+              onClick={() => joinRoom(roomCode)}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Joining...' : 'Join Room'}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {isInstructor && (
+        <div className="bg-card p-6 rounded-lg shadow-sm mb-8">
+          <h2 className="text-2xl font-bold mb-4">Your Quizzes</h2>
+          {availableQuizzes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {availableQuizzes.map((quiz) => (
+                <div key={quiz.id} className="border p-4 rounded-lg">
+                  <h3 className="font-semibold">{quiz.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {quiz.question_count} questions · {quiz.difficulty}
+                  </p>
+                  <Button 
+                    size="sm" 
+                    onClick={() => startQuiz(quiz.id)}
+                    className="w-full"
+                  >
+                    Start New Quiz Room
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">You haven't created any quizzes yet.</p>
+          )}
+        </div>
+      )}
 
       <div className="bg-card p-6 rounded-lg shadow-sm">
         <h2 className="text-2xl font-bold mb-4">Active Rooms</h2>
@@ -155,13 +255,23 @@ const MultiplayerQuizBattle = () => {
                     <h3 className="font-semibold">Room {room.room_code}</h3>
                     <p className="text-sm text-muted-foreground">Created {new Date(room.created_at).toLocaleTimeString()}</p>
                   </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => joinRoom(room.room_code)}
-                    disabled={isLoading || room.host_id === user?.id}
-                  >
-                    Join
-                  </Button>
+                  {isStudent && room.host_id !== user?.id && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => joinRoom(room.room_code)}
+                      disabled={isLoading}
+                    >
+                      Join
+                    </Button>
+                  )}
+                  {isInstructor && room.host_id === user?.id && (
+                    <Button 
+                      size="sm"
+                      onClick={() => startExistingRoom(room.id)}
+                    >
+                      Start Quiz
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
