@@ -12,6 +12,8 @@ const QuizBattlePage = () => {
     return <div>Error: No room ID provided</div>;
   }
 
+  console.log("QuizBattlePage received roomId:", roomId);
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />

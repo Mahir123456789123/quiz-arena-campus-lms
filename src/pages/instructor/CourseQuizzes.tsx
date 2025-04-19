@@ -144,7 +144,7 @@ const CourseQuizzes = () => {
             
             <TabsContent value="create">
               {courseId ? (
-                <InstructorQuizCreator courseId={courseId} />
+                <InstructorQuizCreator courseId={courseId} key={courseId} />
               ) : (
                 <div className="p-6 text-center border rounded-lg">
                   <p className="text-lg mb-4">Select a course to create quizzes for</p>

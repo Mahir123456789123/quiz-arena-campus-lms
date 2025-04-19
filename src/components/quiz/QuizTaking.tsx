@@ -39,6 +39,9 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
   const [error, setError] = useState<string | null>(null);
   const isInstructor = profile?.role === 'instructor' || profile?.role === 'admin';
 
+  console.log("Room ID:", roomId);
+  console.log("User ID:", user?.id);
+
   useEffect(() => {
     if (!roomId) {
       setError("No room ID provided");
@@ -47,6 +50,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
 
     const fetchQuizData = async () => {
       try {
+        console.log("Fetching quiz data for room:", roomId);
         // Fetch room details
         const { data: roomData, error: roomError } = await supabase
           .from('quiz_rooms')
@@ -60,10 +64,11 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
           throw roomError;
         }
         
+        console.log("Room data:", roomData);
         setRoom(roomData as QuizRoom);
 
         // Check if the user is already a participant (if not the host)
-        if (roomData.host_id !== user?.id) {
+        if (user?.id && roomData.host_id !== user.id) {
           await joinQuizRoomIfNeeded(roomData.id);
         }
 
@@ -80,6 +85,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
           throw quizError;
         }
         
+        console.log("Quiz data:", quizData);
         setQuiz(quizData as Quiz);
 
         // Fetch questions
@@ -95,6 +101,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
           throw questionError;
         }
         
+        console.log("Question data:", questionData);
         setQuestions(questionData as QuizQuestion[]);
 
         // Fetch participants with their profiles
@@ -105,6 +112,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
       } catch (error: any) {
         console.error("Failed to load quiz data:", error);
         toast.error('Failed to load quiz data');
+        setIsLoading(false);
       }
     };
 
@@ -116,6 +124,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'quiz_participants', filter: `room_id=eq.${roomId}` },
         (payload) => {
+          console.log("Participants updated:", payload);
           fetchUpdatedParticipants();
         }
       )
@@ -127,24 +136,33 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'quiz_rooms', filter: `id=eq.${roomId}` },
         (payload) => {
+          console.log("Room updated:", payload);
           // @ts-ignore
-          setRoom(payload.new as QuizRoom);
+          const newRoom = payload.new as QuizRoom;
+          setRoom(newRoom);
           
           // @ts-ignore
-          if (payload.new.status === 'active' && room?.status === 'waiting') {
+          if (newRoom.status === 'active' && room?.status === 'waiting') {
             toast.success('Quiz has started!');
+          }
+          
+          // @ts-ignore
+          if (newRoom.status === 'completed' && room?.status !== 'completed') {
+            setIsFinished(true);
+            fetchUpdatedParticipants();
+            toast.success('Quiz has ended!');
           }
         }
       )
       .subscribe();
 
     // Set up a timer if the quiz is active
-    let timerInterval: NodeJS.Timeout;
+    let timerInterval: NodeJS.Timeout | undefined;
     if (room?.status === 'active') {
       timerInterval = setInterval(() => {
         setTimeRemaining((prevTime) => {
           if (prevTime <= 0) {
-            clearInterval(timerInterval);
+            if (timerInterval) clearInterval(timerInterval);
             finishQuiz();
             return 0;
           }
@@ -154,34 +172,43 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
     }
 
     return () => {
+      if (timerInterval) clearInterval(timerInterval);
       supabase.removeChannel(participantsChannel);
       supabase.removeChannel(roomsChannel);
-      clearInterval(timerInterval);
     };
-  }, [roomId, user?.id, room?.status === 'active']);
+  }, [roomId, user?.id]);
 
   // Join the room if the user is not already a participant
   const joinQuizRoomIfNeeded = async (roomId: string) => {
+    if (!user?.id) {
+      console.error("Cannot join room: No user ID");
+      return;
+    }
+    
     try {
+      console.log("Checking if user is already a participant", user.id);
       // Check if user is already a participant
       const { data: existingParticipant, error: participantError } = await supabase
         .from('quiz_participants')
         .select('*')
         .eq('room_id', roomId)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (participantError) {
         console.error("Error checking participant:", participantError);
       }
 
+      console.log("Existing participant:", existingParticipant);
+
       // If not already joined, add as participant
       if (!existingParticipant) {
+        console.log("Joining room as new participant");
         const { error } = await supabase
           .from('quiz_participants')
           .insert({
             room_id: roomId,
-            user_id: user?.id,
+            user_id: user.id,
             score: 0,
             status: 'active'
           });
@@ -204,6 +231,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
 
   const fetchUpdatedParticipants = async () => {
     try {
+      console.log("Fetching participants for room:", roomId);
       const { data: participantData, error: participantError } = await supabase
         .from('quiz_participants')
         .select(`
@@ -216,6 +244,8 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
         console.error("Participants fetch error:", participantError);
         throw participantError;
       }
+
+      console.log("Participant data:", participantData);
 
       // Type assertion with the correct type after validating the data
       const typedParticipants = participantData?.map(participant => ({
@@ -287,6 +317,8 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
   };
 
   const finishQuiz = async () => {
+    if (!user?.id) return;
+    
     setIsFinished(true);
     try {
       // Update participant's status
@@ -296,7 +328,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
           status: 'finished'
         })
         .eq('room_id', roomId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -311,6 +343,8 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
   };
 
   const startQuiz = async () => {
+    if (!user?.id) return;
+    
     try {
       const { error } = await supabase
         .from('quiz_rooms')
@@ -319,7 +353,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
           started_at: new Date().toISOString()
         })
         .eq('id', roomId)
-        .eq('host_id', user?.id); // Make sure only the host can start the quiz
+        .eq('host_id', user.id); // Make sure only the host can start the quiz
 
       if (error) throw error;
 
@@ -331,6 +365,8 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
   };
 
   const endQuiz = async () => {
+    if (!user?.id) return;
+    
     try {
       const { error } = await supabase
         .from('quiz_rooms')
@@ -339,7 +375,7 @@ const QuizTaking: React.FC<QuizTakingProps> = ({ roomId }) => {
           ended_at: new Date().toISOString()
         })
         .eq('id', roomId)
-        .eq('host_id', user?.id); // Make sure only the host can end the quiz
+        .eq('host_id', user.id); // Make sure only the host can end the quiz
 
       if (error) throw error;
 
