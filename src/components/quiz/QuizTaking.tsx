@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -84,6 +83,29 @@ const QuizTaking: React.FC<{ roomId: string }> = ({ roomId }) => {
   useEffect(() => {
     if (isFinished) {
       fetchLeaderboard();
+      
+      // Subscribe to changes in quiz_results
+      const channel = supabase
+        .channel('quiz_results_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'quiz_results',
+            filter: `quiz_category=eq.${roomId}`
+          },
+          () => {
+            // Fetch updated leaderboard when new results are inserted
+            fetchLeaderboard();
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isFinished, roomId]);
 
