@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { QuizQuestion, QuizRoom } from '@/types/quiz';
 
 const QuizTaking = () => {
@@ -49,7 +50,14 @@ const QuizTaking = () => {
         .single();
         
       if (roomError) throw roomError;
-      setRoom(roomData);
+      
+      // Ensure the room data is properly typed
+      const typedRoomData: QuizRoom = {
+        ...roomData,
+        status: roomData.status as QuizRoom['status']
+      };
+      
+      setRoom(typedRoomData);
       
       // Get quiz details
       const { data: quizData, error: quizError } = await supabase

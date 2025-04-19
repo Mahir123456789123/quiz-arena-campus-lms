@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import CourseView from "./pages/student/CourseView";
 import CourseBrowser from "./pages/student/CourseBrowser";
 import CourseQuizzes from "./pages/instructor/CourseQuizzes";
 import QuizBattles from "./pages/quiz/QuizBattles";
+import QuizBattlePage from "./pages/quiz/QuizBattlePage";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
