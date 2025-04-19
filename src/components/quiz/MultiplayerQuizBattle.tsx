@@ -5,10 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import type { Quiz, QuizRoom } from '@/types/quiz';
+import { useNavigate } from 'react-router-dom';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { Quiz, QuizRoom, QuizParticipant } from '@/types/quiz';
 
 const MultiplayerQuizBattle = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState('');
   const [availableQuizzes, setAvailableQuizzes] = useState<Quiz[]>([]);
   const [activeRooms, setActiveRooms] = useState<QuizRoom[]>([]);
@@ -84,6 +87,7 @@ const MultiplayerQuizBattle = () => {
         throw new Error('This room is no longer accepting participants');
       }
 
+      // Check if user is already a participant
       const { data: existingParticipant } = await supabase
         .from('quiz_participants')
         .select('*')
@@ -92,10 +96,12 @@ const MultiplayerQuizBattle = () => {
         .single();
 
       if (existingParticipant) {
-        toast.info('You are already in this room');
+        // Navigate to the quiz taking interface with the room ID
+        navigate(`/quiz-battle/${room.id}`);
         return;
       }
 
+      // Add the user as a participant
       const { error: participantError } = await supabase
         .from('quiz_participants')
         .insert({
@@ -108,7 +114,9 @@ const MultiplayerQuizBattle = () => {
       if (participantError) throw participantError;
 
       toast.success('Joined room successfully!');
-      setRoomCode('');
+      
+      // Navigate to the quiz taking interface
+      navigate(`/quiz-battle/${room.id}`);
     } catch (error: any) {
       toast.error(error.message);
     } finally {

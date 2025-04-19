@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,30 +19,34 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Routes>
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-            <Route path="/courses" element={<ProtectedRoute><CourseBrowser /></ProtectedRoute>} />
-            <Route path="/courses/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/manage" element={<ProtectedRoute><CourseManagement /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/quizzes" element={<ProtectedRoute><CourseQuizzes /></ProtectedRoute>} />
-            <Route path="/quizzes" element={<ProtectedRoute><QuizBattles /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <TooltipProvider>
+            <Routes>
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+              <Route path="/courses" element={<ProtectedRoute><CourseBrowser /></ProtectedRoute>} />
+              <Route path="/courses/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
+              <Route path="/courses/:courseId/manage" element={<ProtectedRoute><CourseManagement /></ProtectedRoute>} />
+              <Route path="/courses/:courseId/quizzes" element={<ProtectedRoute><CourseQuizzes /></ProtectedRoute>} />
+              <Route path="/quizzes" element={<ProtectedRoute><QuizBattles /></ProtectedRoute>} />
+              <Route path="/quiz-battles" element={<QuizBattles />} />
+              <Route path="/quiz-battle/:roomId" element={<QuizBattlePage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+            <Sonner />
+          </TooltipProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
