@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -21,7 +20,7 @@ const CourseManagement = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [course, setCourse] = useState<any>(null);
+  const [courseData, setCourseData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Course chapters
@@ -74,7 +73,7 @@ const CourseManagement = () => {
           return;
         }
 
-        setCourse(data);
+        setCourseData(data);
       } catch (error: any) {
         toast.error(error.message);
         navigate('/dashboard');
@@ -101,7 +100,7 @@ const CourseManagement = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 container py-10">
-        <CourseHeader course={course} />
+        <CourseHeader course={courseData} />
         
         <div className="mb-6 flex justify-end">
           <Button asChild>
@@ -146,12 +145,7 @@ const CourseManagement = () => {
           </TabsContent>
 
           <TabsContent value="discussions">
-            <DiscussionsTab 
-              comments={comments}
-              userId={user?.id || ''}
-              onCreateComment={createComment}
-              onDeleteComment={deleteComment}
-            />
+            <DiscussionsTab courseId={courseId || ''} />
           </TabsContent>
         </Tabs>
       </main>

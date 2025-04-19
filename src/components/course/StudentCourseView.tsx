@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -13,6 +12,9 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import CourseHeader from './CourseHeader';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, MessageSquare } from 'lucide-react';
+import DiscussionsTab from './DiscussionsTab';
 
 const StudentCourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -54,65 +56,84 @@ const StudentCourseView = () => {
     <div className="container py-10">
       <CourseHeader course={courseData} />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Course Content</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {courseData?.chapters && courseData.chapters.length > 0 ? (
-            <Accordion type="single" collapsible className="space-y-3">
-              {courseData.chapters.map((chapter: any, index: number) => (
-                <AccordionItem key={chapter.id} value={chapter.id} className="border rounded-md overflow-hidden">
-                  <div className="bg-card">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                      <div className="flex items-start gap-2 text-left">
-                        <div>
-                          <h3 className="font-medium">
-                            Chapter {index + 1}: {chapter.title}
-                          </h3>
-                          {chapter.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {chapter.description}
+      <Tabs defaultValue="content" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="content" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Content
+          </TabsTrigger>
+          <TabsTrigger value="discussions" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Discussions
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="content">
+          <Card>
+            <CardHeader>
+              <CardTitle>Course Content</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {courseData?.chapters && courseData.chapters.length > 0 ? (
+                <Accordion type="single" collapsible className="space-y-3">
+                  {courseData.chapters.map((chapter: any, index: number) => (
+                    <AccordionItem key={chapter.id} value={chapter.id} className="border rounded-md overflow-hidden">
+                      <div className="bg-card">
+                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                          <div className="flex items-start gap-2 text-left">
+                            <div>
+                              <h3 className="font-medium">
+                                Chapter {index + 1}: {chapter.title}
+                              </h3>
+                              {chapter.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {chapter.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                      </div>
+                      <AccordionContent className="px-4 pb-4 pt-2">
+                        {chapter.chapter_materials && chapter.chapter_materials.length > 0 ? (
+                          <div className="space-y-3">
+                            {chapter.chapter_materials.map((material: any) => (
+                              <ChapterMaterialViewer 
+                                key={material.id}
+                                material={material}
+                                onDelete={() => {}} // Students can't delete materials
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6">
+                            <FileText className="h-8 w-8 mx-auto text-muted-foreground" />
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              No materials in this chapter yet
                             </p>
-                          )}
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                  </div>
-                  <AccordionContent className="px-4 pb-4 pt-2">
-                    {chapter.chapter_materials && chapter.chapter_materials.length > 0 ? (
-                      <div className="space-y-3">
-                        {chapter.chapter_materials.map((material: any) => (
-                          <ChapterMaterialViewer 
-                            key={material.id}
-                            material={material}
-                            onDelete={() => {}} // Students can't delete materials
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <FileText className="h-8 w-8 mx-auto text-muted-foreground" />
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          No materials in this chapter yet
-                        </p>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">No chapters yet</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                The instructor hasn't added any content to this course yet.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-medium">No chapters yet</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    The instructor hasn't added any content to this course yet.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="discussions">
+          <DiscussionsTab courseId={courseId || ''} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
