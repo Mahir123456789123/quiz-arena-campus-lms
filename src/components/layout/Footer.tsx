@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { Github, Instagram, Twitter } from "lucide-react";
+import { Github, Instagram, Twitter, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Footer = () => {
@@ -9,12 +10,23 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Book className="h-6 w-6 text-edu-primary" />
+              <BookOpen className="h-6 w-6 text-edu-primary" />
               <span className="text-xl font-bold">PadhleBhai</span>
             </div>
             <p className="text-muted-foreground">
               The all-in-one learning platform for your campus that makes education engaging, structured, and competitive.
             </p>
+            <div className="flex gap-4 mt-4">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Twitter className="h-5 w-5" />
+              </a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Github className="h-5 w-5" />
+              </a>
+            </div>
           </div>
           
           <div>
