@@ -1,25 +1,59 @@
 
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, BookOpen, FileQuestion, PlusCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { BookOpen, GraduationCap } from 'lucide-react';
+import { toast } from 'sonner';
+import { useUserCourses } from '@/hooks/useUserCourses';
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: ''
+  });
+  
+  const { data: courses = [], refetch: refetchCourses } = useUserCourses();
+
+  const handleCreateCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .insert({
+          instructor_id: user?.id,
+          title: formData.title,
+          description: formData.description
+        });
+
+      if (error) throw error;
+
+      toast.success('Course created successfully');
+      setFormData({ title: '', description: '' });
+      setShowCreateForm(false);
+      refetchCourses();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1 container py-10">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Instructor Dashboard</h1>
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-green-500" />
-            <span className="text-sm font-medium">Instructor View</span>
+          <div>
+            <h1 className="text-3xl font-bold">Instructor Dashboard</h1>
+            <p className="text-muted-foreground">Manage your courses and content</p>
           </div>
+          <Button onClick={() => setShowCreateForm(true)}>Create Course</Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3 mb-8">
@@ -28,78 +62,65 @@ const InstructorDashboard = () => {
               <CardTitle className="text-sm font-medium">Your Courses</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground mt-1">2 published this month</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">245</div>
-              <p className="text-xs text-muted-foreground mt-1">+25 from last month</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Quiz Responses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">652</div>
-              <p className="text-xs text-muted-foreground mt-1">87% completion rate</p>
+              <div className="text-2xl font-bold">{courses.length}</div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+        {showCreateForm && (
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                <span>Course Management</span>
-              </CardTitle>
+              <CardTitle>Create New Course</CardTitle>
+              <CardDescription>Fill in the details for your new course</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Create, edit and manage your courses.</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button asChild variant="outline">
-                  <Link to="/instructor/courses">My Courses</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/instructor/courses/create">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Create Course
-                  </Link>
-                </Button>
-              </div>
+            <CardContent>
+              <form onSubmit={handleCreateCourse} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Course Title</label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit">Create Course</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileQuestion className="h-5 w-5" />
-                <span>Quiz Management</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Create and manage quizzes for your courses.</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button asChild variant="outline">
-                  <Link to="/instructor/quizzes">My Quizzes</Link>
+        )}
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course: any) => (
+            <Card key={course.id}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>{course.title}</span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    Code: {course.code}
+                  </span>
+                </CardTitle>
+                <CardDescription>{course.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  Manage Course
                 </Button>
-                <Button asChild>
-                  <Link to="/instructor/quizzes/create">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Create Quiz
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </main>
       <Footer />

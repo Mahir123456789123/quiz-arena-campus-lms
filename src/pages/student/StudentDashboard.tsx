@@ -1,29 +1,57 @@
 
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, FileQuestion, BarChart, PlusCircle } from 'lucide-react';
+import { BookOpen, FileQuestion } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import { toast } from 'sonner';
+import { useEnrollments } from '@/hooks/useEnrollments';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [courseCode, setCourseCode] = useState('');
+  const { data: enrollments = [], refetch: refetchEnrollments } = useEnrollments();
 
-  const handleJoinCourse = (e: React.FormEvent) => {
+  const handleJoinCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (courseCode.length !== 3) {
       toast.error('Course code must be 3 digits');
       return;
     }
     
-    // In a real implementation, this would validate against backend
-    toast.success(`Joining course with code: ${courseCode}`);
-    setCourseCode('');
+    try {
+      // First, get the course ID using the code
+      const { data: course, error: courseError } = await supabase
+        .from('courses')
+        .select('id')
+        .eq('code', courseCode)
+        .single();
+
+      if (courseError || !course) {
+        throw new Error('Course not found');
+      }
+
+      // Then create the enrollment
+      const { error: enrollError } = await supabase
+        .from('enrollments')
+        .insert({
+          student_id: user?.id,
+          course_id: course.id
+        });
+
+      if (enrollError) throw enrollError;
+
+      toast.success('Successfully enrolled in course');
+      setCourseCode('');
+      refetchEnrollments();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   return (
@@ -41,67 +69,35 @@ const StudentDashboard = () => {
               <CardTitle className="text-sm font-medium">Enrolled Courses</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground mt-1">2 in progress</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Quizzes Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground mt-1">85% success rate</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Learning Hours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">48h</div>
-              <p className="text-xs text-muted-foreground mt-1">+5h this week</p>
+              <div className="text-2xl font-bold">{enrollments.length}</div>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {enrollments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  <span>My Courses</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {enrollments.map((enrollment: any) => (
+                  <div key={enrollment.id} className="p-4 border rounded-lg">
+                    <h3 className="font-medium">{enrollment.course.title}</h3>
+                    <p className="text-sm text-muted-foreground">{enrollment.course.description}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                <span>My Courses</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Continue learning where you left off.</p>
-              <Button asChild className="w-full">
-                <Link to="/student/courses">View My Courses</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileQuestion className="h-5 w-5" />
-                <span>Quizzes</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Review and attempt quizzes for your courses.</p>
-              <Button asChild className="w-full" variant="outline">
-                <Link to="/student/quizzes">View Quizzes</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PlusCircle className="h-5 w-5" />
                 <span>Join a Course</span>
               </CardTitle>
               <CardDescription>Enter a 3-digit course code to enroll</CardDescription>
