@@ -143,7 +143,16 @@ const CourseQuizzes = () => {
             </TabsList>
             
             <TabsContent value="create">
-              <InstructorQuizCreator courseId={courseId} />
+              {courseId ? (
+                <InstructorQuizCreator courseId={courseId} />
+              ) : (
+                <div className="p-6 text-center border rounded-lg">
+                  <p className="text-lg mb-4">Select a course to create quizzes for</p>
+                  <Button onClick={() => navigate('/instructor')}>
+                    Go to Courses
+                  </Button>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="manage">

@@ -8,11 +8,15 @@ import QuizTaking from '@/components/quiz/QuizTaking';
 const QuizBattlePage = () => {
   const { roomId } = useParams<{ roomId: string }>();
 
+  if (!roomId) {
+    return <div>Error: No room ID provided</div>;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <QuizTaking />
+        <QuizTaking roomId={roomId} />
       </main>
       <Footer />
     </div>
