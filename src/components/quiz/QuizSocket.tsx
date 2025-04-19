@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { useQuizSocket } from '@/hooks/useQuizSocket';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Trophy } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 interface QuizSocketProps {
   roomId: string;
@@ -16,9 +16,10 @@ interface LeaderboardEntry {
 }
 
 const QuizSocket: React.FC<QuizSocketProps> = ({ roomId, onScoreUpdate }) => {
-  const { socket, isConnected, sendAnswer } = useQuizSocket(roomId);
+  const { socket, isConnected } = useQuizSocket(roomId);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   useEffect(() => {
     if (!socket) return;
@@ -42,7 +43,7 @@ const QuizSocket: React.FC<QuizSocketProps> = ({ roomId, onScoreUpdate }) => {
     };
   }, [socket, onScoreUpdate, toast]);
 
-  if (!isConnected) return null;
+  if (!isConnected || profile?.role === 'instructor') return null;
 
   return (
     <Card className="mt-6">

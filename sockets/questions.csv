@@ -1,0 +1,9 @@
+
+room,question,option1,option2,option3,option4,answer
+general,What's the Paris capital of?,London,Berlin,Rome,Paris,4
+general,What's 2+2?,3,4,5,6,2
+science,Water is?,H2O,CO2,O2,NH3,1
+science,Earth's radius in km?,6000km,6371km,8000km,5000km,2
+history,Who wrote Tom Sawyer?,William Shakespeare,Charles Dickens,Jane Austen,Mark Twain,4
+geography,What's the longest river?,Amazon,Nile,Yangtze,Mississippi,2
+arts,Who painted the Mona Lisa?,Leonardo da Vinci,Michelangelo,Raphael,Donatello,1
