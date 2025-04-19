@@ -5,9 +5,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, BookOpen } from 'lucide-react';
+import { Shield, Users, BookOpen, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUserCourses } from '@/hooks/useUserCourses';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -68,12 +69,27 @@ const AdminDashboard = () => {
                     <h3 className="font-medium">{course.title}</h3>
                     <p className="text-sm text-muted-foreground">Code: {course.code}</p>
                   </div>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteCourse(course.id)}
-                  >
-                    Delete Course
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="icon">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete the course and all its associated chapters, materials, and comments.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteCourse(course.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ))}
             </div>
