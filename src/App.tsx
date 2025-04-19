@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import QuizBattles from "./pages/quiz/QuizBattles";
 import QuizBattlePage from "./pages/quiz/QuizBattlePage";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import ContentHub from "./pages/ContentHub";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +40,7 @@ function App() {
               <Route path="/quizzes" element={<ProtectedRoute><QuizBattles /></ProtectedRoute>} />
               <Route path="/quiz-battles" element={<QuizBattles />} />
               <Route path="/quiz-battle/:roomId" element={<QuizBattlePage />} />
+              <Route path="/content-hub" element={<ProtectedRoute><ContentHub /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
