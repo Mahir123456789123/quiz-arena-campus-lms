@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { BookOpen, LogIn, Users } from 'lucide-react';
 import type { Quiz, QuizRoom, QuizParticipant } from '@/types/quiz';
 
 const MultiplayerQuizBattle = () => {
@@ -42,12 +43,14 @@ const MultiplayerQuizBattle = () => {
     try {
       let query = supabase
         .from('quizzes')
-        .select('*')
-        .eq('is_published', true);
+        .select('*');
       
       // If instructor, only show their own quizzes
       if (isInstructor) {
         query = query.eq('created_by', user?.id);
+      } else {
+        // For students, only show published quizzes
+        query = query.eq('is_published', true);
       }
       
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -210,7 +213,9 @@ const MultiplayerQuizBattle = () => {
             <Button 
               onClick={() => joinRoom(roomCode)}
               disabled={isLoading}
+              className="flex items-center gap-2"
             >
+              <LogIn className="h-4 w-4" />
               {isLoading ? 'Joining...' : 'Join Room'}
             </Button>
           </div>
@@ -224,7 +229,10 @@ const MultiplayerQuizBattle = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableQuizzes.map((quiz) => (
                 <div key={quiz.id} className="border p-4 rounded-lg">
-                  <h3 className="font-semibold">{quiz.title}</h3>
+                  <div className="flex items-center mb-2">
+                    <BookOpen className="h-4 w-4 mr-2 text-primary" />
+                    <h3 className="font-semibold">{quiz.title}</h3>
+                  </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     {quiz.question_count} questions · {quiz.difficulty}
                   </p>
@@ -239,7 +247,16 @@ const MultiplayerQuizBattle = () => {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">You haven't created any quizzes yet.</p>
+            <div className="text-center p-8 border rounded-lg">
+              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">You haven't created any quizzes yet.</p>
+              <Button 
+                className="mt-4" 
+                onClick={() => navigate('/instructor/course-quizzes')}
+              >
+                Create Quiz
+              </Button>
+            </div>
           )}
         </div>
       )}
@@ -252,7 +269,10 @@ const MultiplayerQuizBattle = () => {
               <div key={room.id} className="border p-4 rounded-lg">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold">Room {room.room_code}</h3>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-2 text-primary" />
+                      <h3 className="font-semibold">Room {room.room_code}</h3>
+                    </div>
                     <p className="text-sm text-muted-foreground">Created {new Date(room.created_at).toLocaleTimeString()}</p>
                   </div>
                   {isStudent && room.host_id !== user?.id && (
@@ -260,7 +280,9 @@ const MultiplayerQuizBattle = () => {
                       size="sm" 
                       onClick={() => joinRoom(room.room_code)}
                       disabled={isLoading}
+                      className="flex items-center gap-1"
                     >
+                      <LogIn className="h-3 w-3" />
                       Join
                     </Button>
                   )}
@@ -268,6 +290,7 @@ const MultiplayerQuizBattle = () => {
                     <Button 
                       size="sm"
                       onClick={() => startExistingRoom(room.id)}
+                      className="flex items-center gap-1"
                     >
                       Start Quiz
                     </Button>
@@ -277,7 +300,10 @@ const MultiplayerQuizBattle = () => {
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground">No active rooms available</p>
+          <div className="text-center p-8 border rounded-lg">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No active rooms available</p>
+          </div>
         )}
       </div>
     </div>

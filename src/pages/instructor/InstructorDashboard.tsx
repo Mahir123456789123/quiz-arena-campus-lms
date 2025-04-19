@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, GraduationCap, Trash2, Users, Eye, PencilIcon } from 'lucide-react';
+import { BookOpen, Users, Eye, PencilIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -68,6 +68,10 @@ const InstructorDashboard = () => {
     navigate(`/courses/${courseId}/manage`);
   };
 
+  const navigateToQuizzes = () => {
+    navigate('/instructor/course-quizzes');
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -77,7 +81,13 @@ const InstructorDashboard = () => {
             <h1 className="text-3xl font-bold">Instructor Dashboard</h1>
             <p className="text-muted-foreground">Manage your courses and content</p>
           </div>
-          <Button onClick={() => setShowCreateForm(true)}>Create Course</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowCreateForm(true)}>Create Course</Button>
+            <Button variant="outline" onClick={navigateToQuizzes}>
+              <BookOpen className="h-4 w-4 mr-2" />
+              Manage Quizzes
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3 mb-8">
@@ -104,12 +114,18 @@ const InstructorDashboard = () => {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Active Enrollments</CardTitle>
+              <CardTitle className="text-sm font-medium">Quiz Rooms</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
-                <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                <div className="text-2xl font-bold">-</div>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/quiz-battles')}
+                >
+                  View Quiz Battles
+                </Button>
               </div>
             </CardContent>
           </Card>
