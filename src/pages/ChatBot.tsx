@@ -26,7 +26,7 @@ const ChatBot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -36,7 +36,7 @@ const ChatBot = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputMessage.trim() || !user) return;
+    if (!inputMessage.trim() || !user || !session) return;
     
     // Add user message to chat
     const newUserMessage: Message = {
@@ -56,7 +56,7 @@ const ChatBot = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.session?.access_token}`
+          "Authorization": `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           message: inputMessage,
