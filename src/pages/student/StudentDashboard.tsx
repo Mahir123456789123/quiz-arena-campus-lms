@@ -1,12 +1,13 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Clock, Award, BarChart3 } from 'lucide-react';
+import { BookOpen, Clock, Award, BarChart3, PlayCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
@@ -26,7 +27,6 @@ const StudentDashboard = () => {
     }
     
     setIsLoading(true);
-    console.log('Attempting to join course with code:', courseCode.trim());
     
     try {
       const { data: courses, error: courseError } = await supabase
@@ -34,21 +34,14 @@ const StudentDashboard = () => {
         .select('id, title, code')
         .ilike('code', courseCode.trim());
 
-      if (courseError) {
-        console.error('Error fetching course:', courseError);
-        throw courseError;
-      }
-      
-      console.log('Found courses:', courses);
+      if (courseError) throw courseError;
       
       if (!courses || courses.length === 0) {
         toast.error('Course not found. Please check the code and try again.');
-        setIsLoading(false);
         return;
       }
 
       const course = courses[0];
-      console.log('Found course:', course);
 
       const { data: existingEnrollment, error: enrollmentCheckError } = await supabase
         .from('enrollments')
@@ -56,16 +49,10 @@ const StudentDashboard = () => {
         .eq('student_id', user?.id)
         .eq('course_id', course.id);
         
-      if (enrollmentCheckError) {
-        console.error('Error checking enrollment:', enrollmentCheckError);
-        throw enrollmentCheckError;
-      }
-      
-      console.log('Existing enrollment check:', existingEnrollment);
+      if (enrollmentCheckError) throw enrollmentCheckError;
       
       if (existingEnrollment && existingEnrollment.length > 0) {
         toast.error('You are already enrolled in this course');
-        setIsLoading(false);
         return;
       }
 
@@ -76,17 +63,12 @@ const StudentDashboard = () => {
           course_id: course.id
         });
 
-      if (enrollError) {
-        console.error('Error creating enrollment:', enrollError);
-        throw enrollError;
-      }
+      if (enrollError) throw enrollError;
 
-      console.log('Successfully enrolled in course:', course.title);
       toast.success(`Successfully enrolled in "${course.title}"`);
       setCourseCode('');
       refetchEnrollments();
     } catch (error: any) {
-      console.error('Error joining course:', error);
       toast.error(error.message || 'Failed to join course');
     } finally {
       setIsLoading(false);
@@ -141,13 +123,23 @@ const StudentDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {enrollments.map((enrollment: any) => (
-                  <Card key={enrollment.id} className="bg-background/50 hover:shadow-md transition-shadow border-muted">
+                  <Card key={enrollment.id} className="bg-background/50 hover:shadow-md transition-shadow">
                     <CardHeader className="p-4">
-                      <CardTitle className="text-base font-medium">{enrollment.course.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{enrollment.course.description}</p>
-                      <Button variant="outline" size="sm" className="mt-2" asChild>
-                        <Link to={`/courses/${enrollment.course.id}`}>View Course</Link>
-                      </Button>
+                      <CardTitle className="text-base font-medium flex items-center justify-between">
+                        {enrollment.course.title}
+                        <Button variant="ghost" size="sm" asChild className="gap-2">
+                          <Link to={`/courses/${enrollment.course.id}`}>
+                            <PlayCircle className="h-4 w-4" />
+                            Continue Learning
+                          </Link>
+                        </Button>
+                      </CardTitle>
+                      <CardDescription>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                          <Clock className="h-4 w-4" />
+                          <span>Last accessed: Recently</span>
+                        </div>
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                 ))}

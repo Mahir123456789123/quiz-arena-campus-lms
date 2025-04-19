@@ -9,12 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, GraduationCap, Trash2 } from 'lucide-react';
+import { BookOpen, GraduationCap, Trash2, Users, Eye, PencilIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const InstructorDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -62,6 +64,10 @@ const InstructorDashboard = () => {
     }
   };
 
+  const navigateToManageCourse = (courseId: string) => {
+    navigate(`/courses/${courseId}/manage`);
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -77,10 +83,34 @@ const InstructorDashboard = () => {
         <div className="grid gap-6 md:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Your Courses</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{courses.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <div className="text-2xl font-bold">-</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Active Enrollments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                <div className="text-2xl font-bold">-</div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -122,41 +152,62 @@ const InstructorDashboard = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {courses.map((course: any) => (
-            <Card key={course.id}>
+            <Card key={course.id} className="relative">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{course.title}</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Code: {course.code}
-                  </span>
+                  <span className="text-xl">{course.title}</span>
                 </CardTitle>
-                <CardDescription>{course.description}</CardDescription>
+                <CardDescription>
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Code: {course.code}
+                  </div>
+                  <p className="line-clamp-2">{course.description}</p>
+                </CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-between items-center">
-                <Button variant="outline" className="w-2/3">
-                  Manage Course
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon">
-                      <Trash2 className="h-4 w-4" />
+              <CardContent>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={() => navigateToManageCourse(course.id)}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                    Manage Course
+                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 flex items-center justify-center gap-2"
+                      onClick={() => navigate(`/courses/${course.id}`)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      Preview
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete the course and all its associated chapters, materials, and comments.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteCourse(course.id)}>
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete the course and all its associated content.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteCourse(course.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
