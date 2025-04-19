@@ -18,6 +18,7 @@ import QuizBattlePage from "./pages/quiz/QuizBattlePage";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ContentHub from "./pages/ContentHub";
+import ChatbotPage from "./pages/ChatbotPage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function App() {
               <Route path="/quiz-battles" element={<QuizBattles />} />
               <Route path="/quiz-battle/:roomId" element={<QuizBattlePage />} />
               <Route path="/content-hub" element={<ProtectedRoute><ContentHub /></ProtectedRoute>} />
+              <Route path="/chatbot" element={<ProtectedRoute><ChatbotPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
