@@ -9,12 +9,14 @@ import Footer from '@/components/layout/Footer';
 import { toast } from 'sonner';
 import { useIsInstructor } from '@/hooks/useIsInstructor';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 const VideoMeetingPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const isInstructor = useIsInstructor();
 
   useEffect(() => {
@@ -66,12 +68,15 @@ const VideoMeetingPage = () => {
             },
           });
           console.log('Successfully joined the meeting room');
+        } else {
+          throw new Error('Container element not found');
         }
         setIsLoading(false);
       } catch (error: any) {
         console.error('Zego initialization error:', error);
+        setError(error.message || 'Failed to join meeting');
+        setIsLoading(false);
         toast.error(error.message || 'Failed to join meeting');
-        navigate(-1);
       }
     };
 
@@ -94,7 +99,16 @@ const VideoMeetingPage = () => {
           <div id="zego-container" className="w-full aspect-video bg-muted">
             {isLoading && (
               <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin mr-2" />
                 <p>Loading meeting room...</p>
+              </div>
+            )}
+            {error && !isLoading && (
+              <div className="flex flex-col items-center justify-center h-full">
+                <p className="text-destructive text-center mb-2">Error: {error}</p>
+                <p className="text-sm text-muted-foreground">
+                  This could be due to incorrect credentials or a connection issue.
+                </p>
               </div>
             )}
           </div>
