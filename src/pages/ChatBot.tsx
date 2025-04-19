@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 import { Boxes } from "@/components/ui/background-boxes";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
   id: string;
@@ -35,7 +36,7 @@ const ChatBot = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || !user) return;
     
     // Add user message to chat
     const newUserMessage: Message = {
@@ -50,15 +51,16 @@ const ChatBot = () => {
     setIsLoading(true);
     
     try {
-      // Call the Flask backend
-      const response = await fetch("http://localhost:5000/chat", {
+      // Call Supabase Edge Function for chatbot response
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chatbot`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${user.token}`
         },
         body: JSON.stringify({
           message: inputMessage,
-          student_id: user?.id || "anonymous",
+          student_id: user.id,
         }),
       });
       
@@ -68,7 +70,7 @@ const ChatBot = () => {
       
       const data = await response.json();
       
-      // Add bot response to chat
+      // Add bot response to chat and save to Supabase
       const newBotMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: data.response,
@@ -76,13 +78,28 @@ const ChatBot = () => {
         timestamp: new Date(),
       };
       
+      // Save messages to Supabase
+      await supabase.from('chat_messages').insert([
+        { 
+          user_id: user.id, 
+          message: newUserMessage.text, 
+          is_bot: false,
+          conversation_id: newUserMessage.id 
+        },
+        { 
+          user_id: user.id, 
+          message: newBotMessage.text, 
+          is_bot: true,
+          conversation_id: newUserMessage.id 
+        }
+      ]);
+
       setMessages((prev) => [...prev, newBotMessage]);
     } catch (error) {
       console.error("Error:", error);
-      // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, I'm having trouble connecting to my backend. Please try again later.",
+        text: "Sorry, I'm having trouble connecting to the chatbot. Please try again later.",
         isUser: false,
         timestamp: new Date(),
       };
