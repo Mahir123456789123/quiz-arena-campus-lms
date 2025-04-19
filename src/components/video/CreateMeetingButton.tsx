@@ -43,6 +43,7 @@ export const CreateMeetingButton = ({
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
   const [scheduledMeetings, setScheduledMeetings] = useState<ScheduledMeeting[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load meetings from localStorage on component mount
   useEffect(() => {
@@ -56,8 +57,10 @@ export const CreateMeetingButton = ({
     }
   }, []);
 
-  const createInstantMeeting = () => {
+  const createInstantMeeting = async () => {
     try {
+      setIsLoading(true);
+      
       if (!isInstructor) {
         toast.error('Only instructors can create meetings');
         return;
@@ -75,8 +78,10 @@ export const CreateMeetingButton = ({
       // Navigate to the meeting room
       navigate(`/meeting/${roomId}`);
     } catch (error: any) {
-      toast.error('Failed to create meeting');
       console.error('Meeting creation error:', error);
+      toast.error(`Failed to create meeting: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -84,6 +89,8 @@ export const CreateMeetingButton = ({
     e.preventDefault();
     
     try {
+      setIsLoading(true);
+      
       if (!user || !profile) {
         toast.error('You need to be logged in to schedule a meeting');
         return;
@@ -123,8 +130,10 @@ export const CreateMeetingButton = ({
       setMeetingDate('');
       setMeetingTime('');
     } catch (error: any) {
-      toast.error('Failed to schedule meeting');
       console.error('Meeting scheduling error:', error);
+      toast.error(`Failed to schedule meeting: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,14 +145,19 @@ export const CreateMeetingButton = ({
         variant={variant} 
         onClick={createInstantMeeting} 
         className={`gap-2 ${className}`}
+        disabled={isLoading}
       >
         <Video className="h-4 w-4" />
-        {showText && "Create Meeting"}
+        {showText && (isLoading ? "Creating..." : "Create Meeting")}
       </Button>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="gap-2 ml-2">
+          <Button 
+            variant="outline" 
+            className="gap-2 ml-2"
+            disabled={isLoading}
+          >
             <Calendar className="h-4 w-4" />
             {showText && "Schedule Meeting"}
           </Button>
@@ -188,7 +202,9 @@ export const CreateMeetingButton = ({
             </div>
             
             <div className="flex justify-end pt-2">
-              <Button type="submit">Schedule Meeting</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Scheduling..." : "Schedule Meeting"}
+              </Button>
             </div>
           </form>
         </DialogContent>

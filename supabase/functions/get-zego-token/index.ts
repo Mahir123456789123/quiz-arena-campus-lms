@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { createHash, createHmac as createDenoHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,6 +47,27 @@ serve(async (req) => {
     )
   }
 })
+
+// Create a compatible implementation of createHmac
+function createHmac(algorithm: string, key: string) {
+  const keyData = new TextEncoder().encode(key);
+  const hmac = createDenoHmac(algorithm, keyData);
+  
+  return {
+    update(data: string) {
+      hmac.update(new TextEncoder().encode(data));
+      return this;
+    },
+    digest(encoding: string) {
+      if (encoding === 'hex') {
+        return Array.from(new Uint8Array(hmac.digest()))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+      }
+      return hmac.digest();
+    }
+  };
+}
 
 function generateToken(
   appID: number,
