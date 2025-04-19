@@ -15,8 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+
 export const CreateMeetingButton = ({ 
-  variant = "outline", 
+  variant = "outline" as ButtonVariant, 
   showText = true, 
   className = "" 
 }) => {
