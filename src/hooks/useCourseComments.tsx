@@ -33,8 +33,8 @@ export const useCommentMutations = (courseId: string) => {
   const { user } = useAuth();
 
   const createCommentMutation = useMutation({
-    mutationFn: (content: string) => {
-      return supabase
+    mutationFn: async (content: string) => {
+      const { data, error } = await supabase
         .from('comments')
         .insert({
           course_id: courseId,
@@ -43,6 +43,9 @@ export const useCommentMutations = (courseId: string) => {
         })
         .select()
         .single();
+        
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course_comments', courseId] });
@@ -55,11 +58,14 @@ export const useCommentMutations = (courseId: string) => {
   });
 
   const deleteCommentMutation = useMutation({
-    mutationFn: (commentId: string) => {
-      return supabase
+    mutationFn: async (commentId: string) => {
+      const { error } = await supabase
         .from('comments')
         .delete()
         .eq('id', commentId);
+        
+      if (error) throw error;
+      return commentId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course_comments', courseId] });

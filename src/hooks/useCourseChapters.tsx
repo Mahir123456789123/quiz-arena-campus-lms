@@ -74,12 +74,12 @@ export const useChapterMutations = (courseId: string) => {
   const queryClient = useQueryClient();
 
   const createChapterMutation = useMutation({
-    mutationFn: (chapterData: { 
+    mutationFn: async (chapterData: { 
       title: string, 
       description?: string, 
       order_number?: number 
     }) => {
-      return supabase
+      const { data, error } = await supabase
         .from('chapters')
         .insert({
           ...chapterData,
@@ -87,6 +87,9 @@ export const useChapterMutations = (courseId: string) => {
         })
         .select()
         .single();
+        
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course_chapters', courseId] });
@@ -99,11 +102,14 @@ export const useChapterMutations = (courseId: string) => {
   });
 
   const deleteChapterMutation = useMutation({
-    mutationFn: (chapterId: string) => {
-      return supabase
+    mutationFn: async (chapterId: string) => {
+      const { error } = await supabase
         .from('chapters')
         .delete()
         .eq('id', chapterId);
+        
+      if (error) throw error;
+      return chapterId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course_chapters', courseId] });
