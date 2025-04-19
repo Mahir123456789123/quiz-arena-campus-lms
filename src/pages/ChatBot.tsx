@@ -1,10 +1,9 @@
 
 import { useState, useEffect, useRef } from "react";
-import { Send } from "lucide-react";
+import { Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
-import { Boxes } from "@/components/ui/background-boxes";
 import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
@@ -25,6 +24,7 @@ const ChatBot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -110,65 +110,73 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-slate-950 flex flex-col">
-      <div className="absolute inset-0 w-full h-full z-10">
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-slate-950 via-slate-900/50 to-slate-900/10 z-20" />
-        <Boxes />
-      </div>
-      
-      <div className="container mx-auto flex flex-col h-screen p-4 relative z-30">
-        <div className="flex-1 overflow-y-auto mb-4 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.isUser ? "justify-end" : "justify-start"
-                }`}
-              >
+    <>
+      {/* Chat toggle button */}
+      <Button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0 bg-edu-primary hover:bg-edu-primary/80 shadow-lg"
+      >
+        <MessageSquare className="h-6 w-6" />
+      </Button>
+
+      {/* Chat widget */}
+      {isOpen && (
+        <div className="fixed bottom-20 right-4 w-96 h-[600px] rounded-lg shadow-xl flex flex-col bg-slate-950 border border-white/10">
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-4">
+              {messages.map((message) => (
                 <div
-                  className={`max-w-[75%] rounded-lg p-3 ${
-                    message.isUser
-                      ? "bg-edu-primary text-white"
-                      : "bg-white/10 text-white"
+                  key={message.id}
+                  className={`flex ${
+                    message.isUser ? "justify-end" : "justify-start"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{message.text}</p>
-                  <p className="text-xs mt-1 opacity-70">
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  <div
+                    className={`max-w-[75%] rounded-lg p-3 ${
+                      message.isUser
+                        ? "bg-edu-primary text-white"
+                        : "bg-white/10 text-white"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{message.text}</p>
+                    <p className="text-xs mt-1 opacity-70">
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-        </div>
 
-        <form
-          onSubmit={handleSendMessage}
-          className="flex gap-2 backdrop-blur-sm bg-white/5 border border-white/10 p-2 rounded-lg"
-        >
-          <Input
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="bg-transparent border-white/10 text-white focus-visible:ring-edu-primary"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={isLoading}
-            className="bg-edu-primary hover:bg-edu-primary/80"
+          <form
+            onSubmit={handleSendMessage}
+            className="p-4 border-t border-white/10"
           >
-            <Send className="h-5 w-5" />
-          </Button>
-        </form>
-      </div>
-    </div>
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Type your message..."
+                className="bg-transparent border-white/10 text-white focus-visible:ring-edu-primary"
+                disabled={isLoading}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                disabled={isLoading}
+                className="bg-edu-primary hover:bg-edu-primary/80"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
   );
 };
 
