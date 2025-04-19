@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -102,7 +101,6 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
 
     setIsSubmitting(true);
     try {
-      // Upload file to Supabase Storage
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `assignments/${material.id}/${fileName}`;
@@ -116,13 +114,11 @@ const ChapterMaterialViewer = ({ material, onDelete }: ChapterMaterialViewerProp
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
       const { data: { publicUrl } } = supabase
         .storage
         .from('course-materials')
         .getPublicUrl(filePath);
 
-      // Create submission record
       const { error: submissionError } = await supabase
         .from('submissions')
         .insert({
