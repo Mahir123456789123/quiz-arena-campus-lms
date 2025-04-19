@@ -1,163 +1,177 @@
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
-import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ContentUploadModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
-const ContentUploadModal = ({ isOpen, onClose, onSuccess }: ContentUploadModalProps) => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [type, setType] = useState("article");
-  const [url, setUrl] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const ContentUploadModal: React.FC<ContentUploadModalProps> = ({ onClose, onSuccess }) => {
   const { user } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    subject: '',
+    type: '',
+    articleSnippet: '',
+    file: null as File | null
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "You must be logged in to upload content",
-        variant: "destructive",
-      });
+    if (!user) return;
+
+    // Validate required fields
+    if (!formData.title || !formData.subject || !formData.type) {
+      toast.error('Please fill in all required fields');
       return;
     }
-    
-    if (!title.trim()) {
-      toast({
-        title: "Title required",
-        description: "Please provide a title for your content",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
+
+    setIsUploading(true);
     try {
-      // Insert into chapter_materials table (based on the database schema)
-      const { error } = await supabase
-        .from('chapter_materials')
+      // Upload file if exists
+      let filePath = null;
+      if (formData.file) {
+        const fileExt = formData.file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { data: fileData, error: uploadError } = await supabase.storage
+          .from('content')
+          .upload(fileName, formData.file);
+
+        if (uploadError) throw uploadError;
+        filePath = fileName;
+      }
+
+      // Create content record
+      const { error: insertError } = await supabase
+        .from('content')
         .insert({
-          title,
-          content: content || null,
-          url: url || null,
-          type,
-          chapter_id: "default-chapter-id", // This would need to be properly set based on your app's logic
-          is_assignment: false
+          title: formData.title,
+          author_id: user.id,
+          author_name: user.email || 'Unknown Author',
+          type: formData.type,
+          subject: formData.subject,
+          article_snippet: formData.articleSnippet,
+          file_path: filePath,
+          is_published: true,
+          views: 0,
+          rating: 0,
+          date: new Date().toISOString()
         });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Content uploaded",
-        description: "Your content has been successfully uploaded",
-      });
-      
-      // Reset form and close modal
-      setTitle("");
-      setContent("");
-      setType("article");
-      setUrl("");
-      onClose();
-      
-      // Trigger any additional success callback
-      if (onSuccess) onSuccess();
-      
+
+      if (insertError) throw insertError;
+
+      toast.success('Content uploaded successfully!');
+      onSuccess();
     } catch (error) {
-      console.error("Error uploading content:", error);
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your content",
-        variant: "destructive",
-      });
+      console.error('Upload error:', error);
+      toast.error('Failed to upload content');
     } finally {
-      setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Upload New Content</DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-card dark:bg-card p-6 rounded-xl max-w-md w-full shadow-xl border dark:border-gray-700">
+        <h2 className="text-xl font-bold mb-4 text-foreground">Upload Content</h2>
         
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input 
-              id="title" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              placeholder="Enter content title"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="title" className="text-foreground">Title</Label>
+            <Input
+              id="title"
               required
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="bg-background text-foreground border-input"
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="type">Content Type</Label>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select content type" />
+
+          <div>
+            <Label htmlFor="subject" className="text-foreground">Subject</Label>
+            <Input
+              id="subject"
+              required
+              value={formData.subject}
+              onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+              className="bg-background text-foreground border-input"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="type" className="text-foreground">Content Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+            >
+              <SelectTrigger id="type" className="bg-background text-foreground border-input">
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="article">Article</SelectItem>
+              <SelectContent className="bg-popover text-popover-foreground">
                 <SelectItem value="video">Video</SelectItem>
-                <SelectItem value="document">Document</SelectItem>
-                <SelectItem value="link">External Link</SelectItem>
+                <SelectItem value="ppt">Presentation</SelectItem>
+                <SelectItem value="article">Article</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          {type === 'link' ? (
-            <div className="space-y-2">
-              <Label htmlFor="url">External URL</Label>
-              <Input 
-                id="url" 
-                value={url} 
-                onChange={(e) => setUrl(e.target.value)} 
-                placeholder="https://example.com/resource"
-                type="url"
-              />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
-              <Textarea 
-                id="content" 
-                value={content} 
-                onChange={(e) => setContent(e.target.value)} 
-                placeholder="Enter your content here"
-                rows={6}
+
+          {formData.type === 'article' && (
+            <div>
+              <Label htmlFor="snippet" className="text-foreground">Article Snippet</Label>
+              <Textarea
+                id="snippet"
+                value={formData.articleSnippet}
+                onChange={(e) => setFormData(prev => ({ ...prev, articleSnippet: e.target.value }))}
+                className="bg-background text-foreground border-input"
               />
             </div>
           )}
-          
+
+          <div>
+            <Label htmlFor="file" className="text-foreground">File Upload</Label>
+            <Input
+              id="file"
+              type="file"
+              onChange={(e) => setFormData(prev => ({ ...prev, file: e.target.files?.[0] || null }))}
+              className="bg-background text-foreground border-input"
+            />
+          </div>
+
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" type="button" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="border-input text-foreground hover:bg-secondary"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Uploading..." : "Upload"}
+            <Button 
+              type="submit" 
+              disabled={isUploading}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isUploading ? 'Uploading...' : 'Upload'}
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
