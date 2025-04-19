@@ -8,10 +8,11 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { toast } from 'sonner';
 import { useIsInstructor } from '@/hooks/useIsInstructor';
+import { supabase } from '@/integrations/supabase/client';
 
 const VideoMeetingPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const isInstructor = useIsInstructor();
@@ -23,21 +24,31 @@ const VideoMeetingPage = () => {
           throw new Error('Missing required information');
         }
 
-        // Use mock token for development until edge function is fixed
-        // This is a temporary solution to get past the token error
-        const appID = 1234567890; // Replace with your actual app ID when available
-        const serverSecret = "your-server-secret"; // Replace with your actual server secret when available
+        console.log('Initializing meeting room:', roomId);
         
-        // Generate a simple token - this should be replaced with proper token generation in production
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-          appID,
-          serverSecret,
-          roomId,
-          profile.id,
-          profile.full_name || 'Anonymous'
-        );
+        // Generate token using our edge function
+        const { data: tokenData, error: tokenError } = await supabase.functions.invoke('get-zego-token', {
+          body: {
+            roomId,
+            userId: profile.id,
+            userName: profile.full_name || 'Anonymous'
+          },
+        });
+
+        if (tokenError) {
+          console.error('Token generation error:', tokenError);
+          throw new Error(`Failed to get token: ${tokenError.message}`);
+        }
+
+        if (!tokenData?.token) {
+          console.error('No token returned:', tokenData);
+          throw new Error('Failed to get a valid token');
+        }
+
+        console.log('Token generated successfully');
         
-        const zp = ZegoUIKitPrebuilt.create(kitToken);
+        // Create Zego instance with the token
+        const zp = ZegoUIKitPrebuilt.create(tokenData.token);
         
         // Mount the Zego component
         const element = document.getElementById('zego-container');
@@ -49,10 +60,12 @@ const VideoMeetingPage = () => {
             },
             showTurnOffRemoteCameraButton: true,
             showTurnOffRemoteMicrophoneButton: true,
+            showRemoveUserButton: isInstructor,
             onLeaveRoom: () => {
               navigate(-1);
             },
           });
+          console.log('Successfully joined the meeting room');
         }
         setIsLoading(false);
       } catch (error: any) {
@@ -63,7 +76,7 @@ const VideoMeetingPage = () => {
     };
 
     initializeZegoCloud();
-  }, [roomId, profile, navigate]);
+  }, [roomId, profile, navigate, isInstructor]);
 
   if (!roomId) {
     return <div>Error: No room ID provided</div>;
@@ -74,6 +87,10 @@ const VideoMeetingPage = () => {
       <Navbar />
       <main className="flex-1 container mx-auto py-6">
         <Card className="p-4">
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold">Video Meeting</h2>
+            <p className="text-muted-foreground">Room ID: {roomId}</p>
+          </div>
           <div id="zego-container" className="w-full aspect-video bg-muted">
             {isLoading && (
               <div className="flex items-center justify-center h-full">

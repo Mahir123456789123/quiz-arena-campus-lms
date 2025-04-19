@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Video, Calendar } from 'lucide-react';
@@ -14,8 +14,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/lib/auth';
 
+// Define the valid button variant types
 type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+
+// Define a type for scheduled meetings
+type ScheduledMeeting = {
+  id: string;
+  title: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  roomId: string;
+  createdBy: string;
+  createdByName: string;
+};
 
 export const CreateMeetingButton = ({ 
   variant = "outline" as ButtonVariant, 
@@ -23,11 +36,25 @@ export const CreateMeetingButton = ({
   className = "" 
 }) => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const isInstructor = useIsInstructor();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('');
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
+  const [scheduledMeetings, setScheduledMeetings] = useState<ScheduledMeeting[]>([]);
+
+  // Load meetings from localStorage on component mount
+  useEffect(() => {
+    const storedMeetings = localStorage.getItem('scheduledMeetings');
+    if (storedMeetings) {
+      try {
+        setScheduledMeetings(JSON.parse(storedMeetings));
+      } catch (e) {
+        console.error('Error parsing stored meetings:', e);
+      }
+    }
+  }, []);
 
   const createInstantMeeting = () => {
     try {
@@ -35,7 +62,17 @@ export const CreateMeetingButton = ({
         toast.error('Only instructors can create meetings');
         return;
       }
-      const roomId = Math.floor(Math.random() * 10000000).toString();
+      
+      if (!user) {
+        toast.error('You need to be logged in to create a meeting');
+        return;
+      }
+      
+      // Generate a unique room ID
+      const roomId = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      console.log('Creating instant meeting with room ID:', roomId);
+      
+      // Navigate to the meeting room
       navigate(`/meeting/${roomId}`);
     } catch (error: any) {
       toast.error('Failed to create meeting');
@@ -43,17 +80,41 @@ export const CreateMeetingButton = ({
     }
   };
 
-  const scheduleMeeting = (e: React.FormEvent) => {
+  const scheduleMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      if (!user || !profile) {
+        toast.error('You need to be logged in to schedule a meeting');
+        return;
+      }
+      
       if (!meetingTitle || !meetingDate || !meetingTime) {
         toast.error('Please fill in all fields');
         return;
       }
       
-      // In a production app, you'd save this to a database
-      // For demo purposes, just show a success message
+      // Generate a unique room ID for the scheduled meeting
+      const roomId = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      
+      // Create new meeting object
+      const newMeeting: ScheduledMeeting = {
+        id: `meeting-${Date.now()}`,
+        title: meetingTitle,
+        scheduledDate: meetingDate,
+        scheduledTime: meetingTime,
+        roomId: roomId,
+        createdBy: user.id,
+        createdByName: profile.full_name || user.email || 'Anonymous'
+      };
+      
+      // Add to local state
+      const updatedMeetings = [...scheduledMeetings, newMeeting];
+      setScheduledMeetings(updatedMeetings);
+      
+      // Store in localStorage
+      localStorage.setItem('scheduledMeetings', JSON.stringify(updatedMeetings));
+      
       toast.success(`Meeting "${meetingTitle}" scheduled for ${meetingDate} at ${meetingTime}`);
       setIsDialogOpen(false);
       
