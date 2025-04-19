@@ -2,6 +2,8 @@
 import { createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 
+export type UserRole = 'student' | 'instructor' | 'admin';
+
 export type AuthContextType = {
   user: User | null;
   session: Session | null;

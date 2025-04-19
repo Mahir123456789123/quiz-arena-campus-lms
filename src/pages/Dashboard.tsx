@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import AdminDashboard from './admin/AdminDashboard';
 import InstructorDashboard from './instructor/InstructorDashboard';
 import StudentDashboard from './student/StudentDashboard';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -25,9 +26,11 @@ const Dashboard = () => {
           
         if (error) throw error;
         
+        console.log("User role from database:", data?.role);
         setUserRole(data?.role || 'student');
       } catch (error) {
         console.error('Error fetching user role:', error);
+        toast.error('Error loading your profile');
         setUserRole('student'); // Default to student if there's an error
       } finally {
         setIsLoading(false);
