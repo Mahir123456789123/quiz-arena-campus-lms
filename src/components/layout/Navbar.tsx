@@ -1,7 +1,10 @@
 
-import { Link } from "react-router-dom";
-import { Bell, Book, Search, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, Book, Search, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +15,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Successfully logged out");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(`Error logging out: ${error.message}`);
+    }
+  };
+
   return (
     <header className="bg-card sticky top-0 z-50 shadow-sm border-b">
       <div className="container flex h-16 items-center justify-between">
@@ -62,7 +78,12 @@ const Navbar = () => {
                 <Link to="/settings" className="w-full">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <span className="flex items-center">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Book } from 'lucide-react';
@@ -14,6 +15,7 @@ const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState('student');
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -28,6 +30,7 @@ const AuthPage = () => {
           options: {
             data: {
               full_name: fullName,
+              role: role,
             },
           },
         });
@@ -67,17 +70,37 @@ const AuthPage = () => {
         <form onSubmit={handleAuth} className="mt-8 space-y-6">
           <div className="space-y-4">
             {isSignUp && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="John Doe"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <RadioGroup value={role} onValueChange={setRole} className="flex flex-col space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="student" id="student" />
+                      <Label htmlFor="student">Student</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="instructor" id="instructor" />
+                      <Label htmlFor="instructor">Instructor</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="admin" id="admin" />
+                      <Label htmlFor="admin">Admin</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
