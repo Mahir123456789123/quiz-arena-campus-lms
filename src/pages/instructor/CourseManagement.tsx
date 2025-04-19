@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -8,13 +8,14 @@ import { toast } from 'sonner';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Users, MessageSquare } from 'lucide-react';
+import { FileText, Users, MessageSquare, HelpCircle } from 'lucide-react';
 import { useCourseChapters, useChapterMutations } from '@/hooks/useCourseChapters';
 import { useCourseComments, useCommentMutations } from '@/hooks/useCourseComments';
 import CourseHeader from '@/components/course/CourseHeader';
 import ContentTab from '@/components/course/ContentTab';
 import StudentsTab from '@/components/course/StudentsTab';
 import DiscussionsTab from '@/components/course/DiscussionsTab';
+import { Button } from '@/components/ui/button';
 
 const CourseManagement = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -101,6 +102,15 @@ const CourseManagement = () => {
       <Navbar />
       <main className="flex-1 container py-10">
         <CourseHeader course={course} />
+        
+        <div className="mb-6 flex justify-end">
+          <Button asChild>
+            <Link to={`/courses/${courseId}/quizzes`}>
+              <HelpCircle className="mr-2 h-4 w-4" />
+              Manage Course Quizzes
+            </Link>
+          </Button>
+        </div>
 
         <Tabs defaultValue="content" className="space-y-4">
           <TabsList>

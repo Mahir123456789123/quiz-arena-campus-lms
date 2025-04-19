@@ -13,6 +13,8 @@ import AuthPage from "./pages/auth/AuthPage";
 import CourseManagement from "./pages/instructor/CourseManagement";
 import CourseView from "./pages/student/CourseView";
 import CourseBrowser from "./pages/student/CourseBrowser";
+import CourseQuizzes from "./pages/instructor/CourseQuizzes";
+import QuizBattles from "./pages/quiz/QuizBattles";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/courses" element={<ProtectedRoute><CourseBrowser /></ProtectedRoute>} />
             <Route path="/courses/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
             <Route path="/courses/:courseId/manage" element={<ProtectedRoute><CourseManagement /></ProtectedRoute>} />
+            <Route path="/courses/:courseId/quizzes" element={<ProtectedRoute><CourseQuizzes /></ProtectedRoute>} />
+            <Route path="/quizzes" element={<ProtectedRoute><QuizBattles /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
