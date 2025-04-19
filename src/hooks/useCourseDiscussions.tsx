@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseDiscussion } from '@/types/course';
@@ -21,7 +22,7 @@ export const useCourseDiscussions = (courseId: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as CourseDiscussion[];
+      return data as unknown as CourseDiscussion[];
     }
   });
 
@@ -45,7 +46,7 @@ export const useCourseDiscussions = (courseId: string) => {
         .single();
 
       if (error) throw error;
-      return data as CourseDiscussion;
+      return data as unknown as CourseDiscussion;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseDiscussions', courseId] });
