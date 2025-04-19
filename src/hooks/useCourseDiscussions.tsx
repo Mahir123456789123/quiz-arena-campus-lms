@@ -16,28 +16,15 @@ export const useCourseDiscussions = (courseId: string) => {
         .from('course_discussions')
         .select(`
           *,
-          user:user_id (
-            profiles:id (
-              full_name,
-              avatar_url
-            )
-          )
+          profiles(full_name, avatar_url)
         `)
         .eq('course_id', courseId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Transform the data to match the CourseDiscussion type
-      const discussions = data.map((discussion: any) => ({
-        ...discussion,
-        profiles: {
-          full_name: discussion.user?.profiles?.full_name || '',
-          avatar_url: discussion.user?.profiles?.avatar_url || ''
-        }
-      })) as CourseDiscussion[];
-
-      return discussions;
+      // The discussions already have the profile data directly linked
+      return data as CourseDiscussion[];
     }
   });
 
@@ -54,27 +41,12 @@ export const useCourseDiscussions = (courseId: string) => {
         })
         .select(`
           *,
-          user:user_id (
-            profiles:id (
-              full_name, 
-              avatar_url
-            )
-          )
+          profiles(full_name, avatar_url)
         `)
         .single();
 
       if (error) throw error;
-      
-      // Transform the returned data to match CourseDiscussion type
-      const formattedData = {
-        ...data,
-        profiles: {
-          full_name: data.user?.profiles?.full_name || '',
-          avatar_url: data.user?.profiles?.avatar_url || ''
-        }
-      };
-      
-      return formattedData;
+      return data as CourseDiscussion;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseDiscussions', courseId] });
@@ -104,11 +76,67 @@ export const useCourseDiscussions = (courseId: string) => {
     }
   });
 
+  const likeMutation = useMutation({
+    mutationFn: async ({ discussionId, action }: { discussionId: string, action: 'like' | 'dislike' }) => {
+      if (!user) throw new Error('You must be logged in to like or dislike');
+      
+      // First, get the current likes and dislikes
+      const { data: discussion, error: fetchError } = await supabase
+        .from('course_discussions')
+        .select('likes, dislikes')
+        .eq('id', discussionId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      let likes = discussion.likes || [];
+      let dislikes = discussion.dislikes || [];
+      
+      if (action === 'like') {
+        // If already liked, remove like
+        if (likes.includes(user.id)) {
+          likes = likes.filter((id: string) => id !== user.id);
+        } else {
+          // Add like and remove from dislikes if present
+          likes.push(user.id);
+          dislikes = dislikes.filter((id: string) => id !== user.id);
+        }
+      } else {
+        // If already disliked, remove dislike
+        if (dislikes.includes(user.id)) {
+          dislikes = dislikes.filter((id: string) => id !== user.id);
+        } else {
+          // Add dislike and remove from likes if present
+          dislikes.push(user.id);
+          likes = likes.filter((id: string) => id !== user.id);
+        }
+      }
+      
+      // Update the discussion
+      const { error: updateError } = await supabase
+        .from('course_discussions')
+        .update({ likes, dislikes })
+        .eq('id', discussionId);
+      
+      if (updateError) throw updateError;
+      
+      return { discussionId, likes, dislikes };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courseDiscussions', courseId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update reaction');
+    }
+  });
+
   return {
     discussions,
     isLoading,
     error,
     createDiscussion: createMutation.mutate,
-    deleteDiscussion: deleteMutation.mutate
+    deleteDiscussion: deleteMutation.mutate,
+    likeDiscussion: (discussionId: string) => likeMutation.mutate({ discussionId, action: 'like' }),
+    dislikeDiscussion: (discussionId: string) => likeMutation.mutate({ discussionId, action: 'dislike' })
   };
 };

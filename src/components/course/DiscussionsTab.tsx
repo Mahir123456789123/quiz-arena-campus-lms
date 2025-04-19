@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, UserCircle, Trash2, Send } from 'lucide-react';
+import { MessageSquare, UserCircle, Trash2, Send, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useCourseDiscussions } from '@/hooks/useCourseDiscussions';
 import { useAuth } from '@/lib/auth';
 
@@ -13,7 +13,14 @@ interface DiscussionsTabProps {
 
 const DiscussionsTab = ({ courseId }: DiscussionsTabProps) => {
   const [message, setMessage] = useState('');
-  const { discussions, isLoading, createDiscussion, deleteDiscussion } = useCourseDiscussions(courseId);
+  const { 
+    discussions, 
+    isLoading, 
+    createDiscussion, 
+    deleteDiscussion,
+    likeDiscussion,
+    dislikeDiscussion 
+  } = useCourseDiscussions(courseId);
   const { user } = useAuth();
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -67,6 +74,26 @@ const DiscussionsTab = ({ courseId }: DiscussionsTabProps) => {
                       </span>
                     </div>
                     <p className="mt-1">{discussion.content}</p>
+                    <div className="mt-2 flex items-center gap-4">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex items-center gap-1"
+                        onClick={() => likeDiscussion(discussion.id)}
+                      >
+                        <ThumbsUp className={`h-4 w-4 ${discussion.likes?.includes(user?.id) ? 'text-primary fill-primary' : ''}`} />
+                        <span className="text-xs">{discussion.likes?.length || 0}</span>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="flex items-center gap-1"
+                        onClick={() => dislikeDiscussion(discussion.id)}
+                      >
+                        <ThumbsDown className={`h-4 w-4 ${discussion.dislikes?.includes(user?.id) ? 'text-destructive fill-destructive' : ''}`} />
+                        <span className="text-xs">{discussion.dislikes?.length || 0}</span>
+                      </Button>
+                    </div>
                   </div>
                   {user?.id === discussion.user_id && (
                     <Button 
