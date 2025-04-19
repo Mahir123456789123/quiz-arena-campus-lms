@@ -8,7 +8,7 @@ import ContentUploadModal from '@/components/content/ContentUploadModal';
 import ContentCard from '@/components/content/ContentCard';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import type { Content } from '@/types/content';
+import type { Content, ContentType } from '@/types/content';
 
 const ContentHub = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -29,7 +29,14 @@ const ContentHub = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setContent(data || []);
+      
+      // Explicitly cast the type field to ContentType
+      const typedContent = data?.map(item => ({
+        ...item,
+        type: item.type as ContentType
+      })) || [];
+      
+      setContent(typedContent);
     } catch (error) {
       console.error('Error fetching content:', error);
       toast.error('Failed to load content');

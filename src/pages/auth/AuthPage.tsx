@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Book, Google } from 'lucide-react';
+import { Book, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/lib/auth';
 import { Separator } from '@/components/ui/separator';
@@ -73,7 +72,6 @@ const AuthPage = () => {
     }
   };
 
-  // Check if user is already authenticated
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -111,7 +109,7 @@ const AuthPage = () => {
                 </svg>
               </div>
             ) : (
-              <Google className="mr-2 h-5 w-5" />
+              <Mail className="mr-2 h-5 w-5" />
             )}
             Continue with Google
           </Button>
