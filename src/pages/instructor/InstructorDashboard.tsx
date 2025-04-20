@@ -168,7 +168,7 @@ const InstructorDashboard = () => {
           <CardContent>
             {isLoadingMeetings ? (
               <div className="py-4 text-center">
-                <p className="text-muted-foreground">Loading meetings...</p>
+                <span className="text-muted-foreground">Loading meetings...</span>
               </div>
             ) : filteredMeetings.length > 0 ? (
               <div className="space-y-4">
@@ -176,9 +176,9 @@ const InstructorDashboard = () => {
                   <div key={meeting.id} className="flex items-center justify-between border-b pb-4">
                     <div>
                       <h3 className="font-medium">{meeting.title}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         {formatDateTime(meeting.scheduled_date, meeting.scheduled_time)}
-                      </p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button 
@@ -205,7 +205,7 @@ const InstructorDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">No upcoming meetings scheduled</p>
+              <div className="text-muted-foreground">No upcoming meetings scheduled</div>
             )}
           </CardContent>
         </Card>
@@ -256,7 +256,7 @@ const InstructorDashboard = () => {
                   <div className="text-sm text-muted-foreground mb-2">
                     Code: {course.code}
                   </div>
-                  <p className="line-clamp-2">{course.description}</p>
+                  <div className="line-clamp-2">{course.description}</div>
                 </CardDescription>
               </CardHeader>
               <CardContent>
