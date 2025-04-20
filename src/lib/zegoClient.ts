@@ -21,7 +21,9 @@ export const createZegoClient = async (token: string): Promise<ZegoExpressEngine
 
 export const destroyZegoClient = () => {
   if (zegoClient) {
-    zegoClient.destroy();
+    // Use the proper method to destroy the Zego instance
+    // The SDK uses a different method than 'destroy'
+    zegoClient.logout();
     zegoClient = null;
   }
 };

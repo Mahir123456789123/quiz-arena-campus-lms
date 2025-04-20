@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -13,6 +14,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { createZegoClient, destroyZegoClient } from '@/lib/zegoClient';
 import { VideoStream } from '@/components/video/VideoStream';
 import { ZegoExpressEngine } from 'zego-express-engine-webrtc';
+
+// Define the correct type for the stream update event
+interface ZegoStreamUpdateEvent {
+  updateType: 'ADD' | 'DELETE';
+  streamList: Array<{
+    streamID: string;
+    user: {
+      userID: string;
+    };
+  }>;
+}
 
 const VideoMeetingPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -89,9 +101,10 @@ const VideoMeetingPage = () => {
 
         await zegoInstance.startPublishingStream(`${user.id}-${Date.now()}`, stream);
 
-        zegoInstance.on('roomStreamUpdate', async ({ updateType, streamList }) => {
-          if (updateType === 'ADD') {
-            for (const stream of streamList) {
+        // Use the properly typed event handler with correct parameter types
+        zegoInstance.on('roomStreamUpdate', async (roomID: string, updateInfo: ZegoStreamUpdateEvent) => {
+          if (updateInfo.updateType === 'ADD') {
+            for (const stream of updateInfo.streamList) {
               const remoteStream = await zegoInstance.startPlayingStream(stream.streamID);
               if (mounted) {
                 setRemoteStreams(prev => ({
@@ -100,8 +113,8 @@ const VideoMeetingPage = () => {
                 }));
               }
             }
-          } else if (updateType === 'DELETE') {
-            for (const stream of streamList) {
+          } else if (updateInfo.updateType === 'DELETE') {
+            for (const stream of updateInfo.streamList) {
               if (mounted) {
                 setRemoteStreams(prev => {
                   const newStreams = { ...prev };
