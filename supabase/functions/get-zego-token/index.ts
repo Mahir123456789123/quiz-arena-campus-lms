@@ -1,13 +1,15 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createHash, createHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { createHash } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -45,15 +47,27 @@ serve(async (req) => {
     const payloadString = JSON.stringify(payload)
     const encodedPayload = btoa(payloadString)
     
+    // Create signature using crypto
     const signContent = `${appID}${timestamp}${encodedPayload}`
-    const hmac = createHmac("sha256", serverSecret)
-    hmac.update(new TextEncoder().encode(signContent))
-    const signature = Array.from(new Uint8Array(hmac.digest()))
+    const encoder = new TextEncoder();
+    const signatureData = encoder.encode(signContent);
+    const secretData = encoder.encode(serverSecret);
+    
+    const key = await crypto.subtle.importKey(
+      "raw",
+      secretData,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    
+    const signature = await crypto.subtle.sign("HMAC", key, signatureData);
+    const hashHex = Array.from(new Uint8Array(signature))
       .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+      .join('');
     
     const token = {
-      signature,
+      signature: hashHex,
       app_id: appID,
       nonce: 0,
       timestamp,
