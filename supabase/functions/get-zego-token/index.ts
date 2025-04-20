@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createHash, createHmac as createDenoHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { createHash, createHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +8,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -27,12 +26,42 @@ serve(async (req) => {
       throw new Error('Missing Zegocloud credentials')
     }
 
-    const kitToken = generateToken(appID, serverSecret, roomId, userId, userName || 'Anonymous')
+    const timestamp = Math.floor(Date.now() / 1000) + 3600
+    const payload = {
+      app_id: appID,
+      user_id: userId,
+      room_id: roomId,
+      privilege: {
+        1: 1, // Login privilege
+        2: 1  // Publish privilege
+      },
+      stream_id_list: null,
+      payload: JSON.stringify({
+        user_name: userName,
+        room_name: `Room ${roomId}`
+      })
+    }
 
-    console.log(`Token generated successfully for room: ${roomId}, user: ${userId}`)
+    const payloadString = JSON.stringify(payload)
+    const encodedPayload = btoa(payloadString)
     
+    const signContent = `${appID}${timestamp}${encodedPayload}`
+    const hmac = createHmac("sha256", serverSecret)
+    hmac.update(new TextEncoder().encode(signContent))
+    const signature = Array.from(new Uint8Array(hmac.digest()))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+    
+    const token = {
+      signature,
+      app_id: appID,
+      nonce: 0,
+      timestamp,
+      payload: encodedPayload
+    }
+
     return new Response(
-      JSON.stringify({ token: kitToken }),
+      JSON.stringify({ token: btoa(JSON.stringify(token)) }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
@@ -47,70 +76,3 @@ serve(async (req) => {
     )
   }
 })
-
-// Create a compatible implementation of createHmac
-function createHmac(algorithm: string, key: string) {
-  const keyData = new TextEncoder().encode(key);
-  const hmac = createDenoHmac(algorithm, keyData);
-  
-  return {
-    update(data: string) {
-      hmac.update(new TextEncoder().encode(data));
-      return this;
-    },
-    digest(encoding: string) {
-      if (encoding === 'hex') {
-        return Array.from(new Uint8Array(hmac.digest()))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('');
-      }
-      return hmac.digest();
-    }
-  };
-}
-
-function generateToken(
-  appID: number,
-  serverSecret: string,
-  roomID: string,
-  userID: string,
-  userName: string,
-  seconds: number = 3600
-): string {
-  const timestamp = Math.floor(Date.now() / 1000) + seconds;
-  
-  const payload = {
-    app_id: appID,
-    user_id: userID,
-    room_id: roomID,
-    privilege: {
-      1: 1, // Login privilege
-      2: 1  // Publish privilege
-    },
-    stream_id_list: null,
-    payload: JSON.stringify({
-      user_name: userName,
-      room_name: `Room ${roomID}`
-    })
-  };
-  
-  const payloadString = JSON.stringify(payload);
-  const encodedPayload = btoa(payloadString);
-  
-  // Create signature
-  const signatureContent = `${appID}${timestamp}${encodedPayload}`;
-  const hmac = createHmac("sha256", serverSecret);
-  hmac.update(signatureContent);
-  const signature = hmac.digest("hex");
-  
-  // Combine the token parts
-  const tokenInfo = {
-    signature: signature,
-    app_id: appID,
-    nonce: 0, // We're not using nonce
-    timestamp,
-    payload: encodedPayload
-  };
-  
-  return btoa(JSON.stringify(tokenInfo));
-}

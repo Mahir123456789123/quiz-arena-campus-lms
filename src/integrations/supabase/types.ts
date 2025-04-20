@@ -458,6 +458,60 @@ export type Database = {
           },
         ]
       }
+      goal: {
+        Row: {
+          completed: boolean
+          created_at: string | null
+          id: string
+          text: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string | null
+          id?: string
+          text: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string | null
+          id?: string
+          text?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leaderboard: {
+        Row: {
+          completed_at: string | null
+          id: string
+          quiz_category: string
+          score: number
+          time_taken: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          quiz_category: string
+          score: number
+          time_taken: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          quiz_category?: string
+          score?: number
+          time_taken?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -708,6 +762,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scheduled_meetings: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          room_id: string
+          scheduled_date: string
+          scheduled_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          room_id: string
+          scheduled_date: string
+          scheduled_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          room_id?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       study_goals: {
         Row: {
