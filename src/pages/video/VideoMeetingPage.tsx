@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { useAuth } from '@/lib/auth';
@@ -20,6 +20,8 @@ const VideoMeetingPage = () => {
   const [error, setError] = useState<string | null>(null);
   const isInstructor = useIsInstructor();
   const [isCopied, setIsCopied] = useState(false);
+  const zegoContainerRef = useRef<HTMLDivElement>(null);
+  const zegoInstanceRef = useRef<any>(null);
 
   const copyMeetingLink = () => {
     if (!roomId) return;
@@ -32,6 +34,18 @@ const VideoMeetingPage = () => {
     setTimeout(() => setIsCopied(false), 3000);
   };
 
+  // Cleanup function to handle ZegoUIKit instance destruction
+  const cleanupZegoInstance = () => {
+    if (zegoInstanceRef.current) {
+      try {
+        console.log('Cleaning up Zego instance');
+        zegoInstanceRef.current = null;
+      } catch (err) {
+        console.error('Error cleaning up Zego instance:', err);
+      }
+    }
+  };
+
   useEffect(() => {
     const initializeZegoCloud = async () => {
       try {
@@ -42,13 +56,17 @@ const VideoMeetingPage = () => {
         console.log('Initializing meeting room:', roomId);
         
         // Make sure we have the container element ready
-        const element = document.getElementById('zego-container');
-        if (!element) {
+        if (!zegoContainerRef.current) {
           throw new Error('Container element not found');
         }
 
-        // Clear any previous content
-        element.innerHTML = '';
+        // Clean up any existing instance
+        cleanupZegoInstance();
+        
+        // Clear container manually
+        if (zegoContainerRef.current) {
+          zegoContainerRef.current.innerHTML = '';
+        }
 
         const { data: tokenData, error: tokenError } = await supabase.functions.invoke('get-zego-token', {
           body: {
@@ -71,9 +89,10 @@ const VideoMeetingPage = () => {
         console.log('Token generated successfully');
         
         const zp = ZegoUIKitPrebuilt.create(tokenData.token);
+        zegoInstanceRef.current = zp;
         
         await zp.joinRoom({
-          container: element,
+          container: zegoContainerRef.current,
           scenario: {
             mode: ZegoUIKitPrebuilt.GroupCall,
           },
@@ -81,6 +100,7 @@ const VideoMeetingPage = () => {
           showTurnOffRemoteMicrophoneButton: true,
           showRemoveUserButton: isInstructor,
           onLeaveRoom: () => {
+            cleanupZegoInstance();
             navigate(-1);
           },
         });
@@ -94,12 +114,15 @@ const VideoMeetingPage = () => {
       }
     };
 
-    // Add a small delay to ensure DOM is ready
+    // Add a delay to ensure DOM is ready
     const timer = setTimeout(() => {
       initializeZegoCloud();
     }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      cleanupZegoInstance();
+    };
   }, [roomId, profile, navigate, isInstructor, user]);
 
   if (!roomId) {
@@ -126,21 +149,22 @@ const VideoMeetingPage = () => {
               {isCopied ? 'Copied!' : 'Share'}
             </Button>
           </div>
-          <div id="zego-container" className="w-full aspect-video bg-muted relative">
+          <div className="w-full aspect-video bg-muted relative">
             {isLoading && (
-              <div className="flex items-center justify-center h-full">
+              <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
                 <Loader2 className="h-8 w-8 animate-spin mr-2" />
                 <p>Loading meeting room...</p>
               </div>
             )}
             {error && !isLoading && (
-              <div className="flex flex-col items-center justify-center h-full">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted z-10">
                 <p className="text-destructive text-center mb-2">Error: {error}</p>
                 <p className="text-sm text-muted-foreground">
                   This could be due to incorrect credentials or a connection issue.
                 </p>
               </div>
             )}
+            <div id="zego-container" ref={zegoContainerRef} className="w-full h-full"></div>
           </div>
         </Card>
       </main>
