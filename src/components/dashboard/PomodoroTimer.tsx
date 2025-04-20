@@ -46,7 +46,7 @@ const PomodoroTimer = () => {
   const seconds = timeLeft % 60;
 
   return (
-    <Card>
+    <Card className="!bg-blue-100 text-black h-[250px]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Timer className="h-5 w-5" />

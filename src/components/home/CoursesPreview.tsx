@@ -20,9 +20,9 @@ const CoursesPreview = () => {
   const courses = [
     {
       id: 1,
-      title: "Introduction to Computer Science",
-      description: "Learn the fundamentals of computer science, algorithms, and programming.",
-      instructor: "Dr. Rahul Sharma",
+      title: "Graph Theory",
+      description: "Advanced study of graph theory, algorithms and applications.",
+      instructor: "Prof. Vikram Sharma",
       level: "Beginner",
       duration: "8 weeks",
       image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80",
@@ -40,23 +40,23 @@ const CoursesPreview = () => {
     },
     {
       id: 3,
-      title: "Business Economics 101",
-      description: "Understanding the fundamental economic principles in business contexts.",
-      instructor: "Dr. Priya Patel",
+      title: "Material Science",
+      description: "Study of properties and applications of engineering materials.",
+      instructor: "Prof. Vikram Sharma",
       level: "Intermediate",
       duration: "6 weeks",
       image: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1749&q=80",
-      category: "Business",
+      category: "Computer Science",
     },
     {
       id: 4,
-      title: "2-Business Economics 101",
-      description: "Understanding the fundamental economic principles in business contexts.",
-      instructor: "Dr. Priya Patel",
+      title: "Engineering Graphics",
+      description: "Visual communication through technical drawing and computer-aided design.",
+      instructor: "Prof. Arjun Kumar",
       level: "Intermediate",
       duration: "6 weeks",
-      image: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1749&q=80",
-      category: "Business",
+      image: "https://plus.unsplash.com/premium_photo-1661771673036-5b13be70d6e7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      category: "Computer Science",
     },
   ];
 
@@ -65,8 +65,8 @@ const CoursesPreview = () => {
     title: (
       <div className="flex flex-col gap-1">
         <span className="text-xl font-semibold">{course.title}</span>
-        <span className="text-sm text-muted-foreground">{course.instructor}</span>
-        <span className="text-sm text-muted-foreground">{course.duration} • {course.level}</span>
+        <span className="text-sm text-white">{course.instructor}</span>
+        <span className="text-sm text-white">{course.duration} • {course.level}</span>
       </div>
     ),
     src: course.image,

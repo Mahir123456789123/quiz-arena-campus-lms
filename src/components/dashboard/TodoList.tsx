@@ -95,7 +95,7 @@ const TodoList = () => {
   };
 
   return (
-    <Card>
+    <Card className="!bg-blue-100 text-black">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ListChecks className="h-5 w-5" />

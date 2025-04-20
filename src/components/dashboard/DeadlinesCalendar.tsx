@@ -53,7 +53,7 @@ export const DeadlinesCalendar = () => {
                     format(selectedDate, 'yyyy-MM-dd')
                   )
                   .map((assignment: any) => (
-                    <Card key={assignment.id} className="p-4">
+                    <Card key={assignment.id} className="p-4 ">
                       <div className="space-y-1">
                         <h4 className="font-medium">{assignment.chapter_materials.title}</h4>
                         <p className="text-sm text-muted-foreground">
