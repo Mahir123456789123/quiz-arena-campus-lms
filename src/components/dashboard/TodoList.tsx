@@ -95,7 +95,8 @@ const TodoList = () => {
   };
 
   return (
-    <Card className="!bg-blue-100 text-black">
+    <Card className="bg-blue-100 dark:bg-blue-600 text-black dark:text-white transition-colors">
+
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ListChecks className="h-5 w-5" />
@@ -110,13 +111,13 @@ const TodoList = () => {
             placeholder="Add a new study goal..."
             className="flex-1"
           />
-          <Button type="submit">Add</Button>
+          <Button type="submit" className="dark:bg-blue-400">Add</Button>
         </form>
         <div className="space-y-2">
           {goals.map((goal) => (
             <div
               key={goal.id}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent group"
+              className="flex items-center gap-2 p-2 rounded-lg bg-blue-400 text-black hover:bg-blue-200 group"
             >
               <Checkbox
                 checked={goal.completed}
@@ -128,7 +129,7 @@ const TodoList = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="opacity-0 group-hover:opacity-100"
+                className="opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600"
                 onClick={() => deleteGoal(goal.id)}
               >
                 Delete
