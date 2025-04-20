@@ -27,6 +27,8 @@ serve(async (req) => {
       throw new Error('Missing Zegocloud credentials')
     }
 
+    console.log(`Generating token for roomId: ${roomId}, userId: ${userId}`)
+
     const timestamp = Math.floor(Date.now() / 1000) + 3600
     const payload = {
       app_id: appID,
@@ -38,7 +40,7 @@ serve(async (req) => {
       },
       stream_id_list: null,
       payload: JSON.stringify({
-        user_name: userName,
+        user_name: userName || 'Anonymous',
         room_name: `Room ${roomId}`
       })
     }
@@ -72,6 +74,8 @@ serve(async (req) => {
       timestamp,
       payload: encodedPayload
     }
+
+    console.log('Token generated successfully')
 
     return new Response(
       JSON.stringify({ token: btoa(JSON.stringify(token)) }),

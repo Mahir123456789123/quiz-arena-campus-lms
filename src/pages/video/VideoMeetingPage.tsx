@@ -9,7 +9,8 @@ import Footer from '@/components/layout/Footer';
 import { toast } from 'sonner';
 import { useIsInstructor } from '@/hooks/useIsInstructor';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const VideoMeetingPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -18,6 +19,18 @@ const VideoMeetingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isInstructor = useIsInstructor();
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyMeetingLink = () => {
+    if (!roomId) return;
+    
+    const url = `${window.location.origin}/meeting/${roomId}`;
+    navigator.clipboard.writeText(url);
+    setIsCopied(true);
+    toast.success('Meeting link copied to clipboard');
+    
+    setTimeout(() => setIsCopied(false), 3000);
+  };
 
   useEffect(() => {
     const initializeZegoCloud = async () => {
@@ -33,6 +46,9 @@ const VideoMeetingPage = () => {
         if (!element) {
           throw new Error('Container element not found');
         }
+
+        // Clear any previous content
+        element.innerHTML = '';
 
         const { data: tokenData, error: tokenError } = await supabase.functions.invoke('get-zego-token', {
           body: {
@@ -81,7 +97,7 @@ const VideoMeetingPage = () => {
     // Add a small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       initializeZegoCloud();
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [roomId, profile, navigate, isInstructor, user]);
@@ -95,11 +111,22 @@ const VideoMeetingPage = () => {
       <Navbar />
       <main className="flex-1 container mx-auto py-6">
         <Card className="p-4">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold">Video Meeting</h2>
-            <p className="text-muted-foreground">Room ID: {roomId}</p>
+          <div className="mb-4 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold">Video Meeting</h2>
+              <p className="text-muted-foreground">Room ID: {roomId}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={copyMeetingLink}
+            >
+              <Share2 className="h-4 w-4" />
+              {isCopied ? 'Copied!' : 'Share'}
+            </Button>
           </div>
-          <div id="zego-container" className="w-full aspect-video bg-muted">
+          <div id="zego-container" className="w-full aspect-video bg-muted relative">
             {isLoading && (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin mr-2" />
