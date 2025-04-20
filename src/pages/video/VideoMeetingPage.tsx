@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
@@ -107,11 +108,12 @@ const VideoMeetingPage = () => {
         streamIdRef.current = streamID;
         await zegoInstance.startPublishingStream(streamID, stream);
 
+        // Using the correct type for the callback
         zegoInstance.on(
           "roomStreamUpdate",
-          async (_roomID: string, updateInfo: ZegoStreamUpdateEvent) => {
-            if (updateInfo.updateType === "ADD") {
-              for (const stream of updateInfo.streamList) {
+          async (roomID: string, updateType: "ADD" | "DELETE", streamList: any[]) => {
+            if (updateType === "ADD") {
+              for (const stream of streamList) {
                 const remoteStream = await zegoInstance.startPlayingStream(
                   stream.streamID
                 );
@@ -122,8 +124,8 @@ const VideoMeetingPage = () => {
                   }));
                 }
               }
-            } else if (updateInfo.updateType === "DELETE") {
-              for (const stream of updateInfo.streamList) {
+            } else if (updateType === "DELETE") {
+              for (const stream of streamList) {
                 if (mounted) {
                   setRemoteStreams((prev) => {
                     const newStreams = { ...prev };
