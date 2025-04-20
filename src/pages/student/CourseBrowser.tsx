@@ -45,6 +45,12 @@ const CourseBrowser = () => {
   const [courseCode, setCourseCode] = useState('');
   const [showCodeInput, setShowCodeInput] = useState(false);
   const queryClient = useQueryClient();
+  const [selectedCardId, setSelectedCardId] = useState(null);
+
+  // Added missing handleCardClick function
+  const handleCardClick = (courseId: string) => {
+    setSelectedCardId(courseId === selectedCardId ? null : courseId);
+  };
 
   // Fetch all available courses
   const { data: courses = [], isLoading } = useQuery({
@@ -180,8 +186,6 @@ const CourseBrowser = () => {
     const colorIndex = charCode % cardColors.length;
     return cardColors[colorIndex];
   };
-  const [selectedCardId, setSelectedCardId] = useState(null);
-
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -356,7 +360,10 @@ const CourseBrowser = () => {
                           ) : (
                             <Button 
                               className="w-full" 
-                              onClick={(e) => handleEnroll(course.id, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEnroll(course.id);
+                              }}
                             >
                               Enroll Now
                             </Button>
