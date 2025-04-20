@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserCourses } from '@/hooks/useUserCourses';
+import { useScheduledMeetings, ScheduledMeeting } from '@/hooks/useScheduledMeetings';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,17 +16,6 @@ import { useNavigate } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { CreateMeetingButton } from '@/components/video/CreateMeetingButton';
 
-// Define a type for scheduled meetings
-type ScheduledMeeting = {
-  id: string;
-  title: string;
-  scheduledDate: string;
-  scheduledTime: string;
-  roomId: string;
-  createdBy: string;
-  createdByName: string;
-};
-
 const InstructorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -36,37 +26,8 @@ const InstructorDashboard = () => {
   });
   
   const { data: courses = [], refetch: refetchCourses } = useUserCourses();
-  const [upcomingMeetings, setUpcomingMeetings] = useState<ScheduledMeeting[]>([]);
+  const { meetings: upcomingMeetings, isLoading: isLoadingMeetings } = useScheduledMeetings();
   
-  // Load scheduled meetings from localStorage
-  useEffect(() => {
-    const loadMeetings = () => {
-      const storedMeetings = localStorage.getItem('scheduledMeetings');
-      if (storedMeetings) {
-        try {
-          const parsedMeetings = JSON.parse(storedMeetings) as ScheduledMeeting[];
-          // Filter meetings to show only upcoming ones
-          const filteredMeetings = parsedMeetings.filter(meeting => {
-            const meetingDateTime = new Date(`${meeting.scheduledDate}T${meeting.scheduledTime}`);
-            return meetingDateTime > new Date();
-          });
-          setUpcomingMeetings(filteredMeetings);
-        } catch (e) {
-          console.error('Error parsing stored meetings:', e);
-        }
-      }
-    };
-
-    // Load meetings initially
-    loadMeetings();
-
-    // Set up an interval to refresh meetings (e.g., every minute)
-    const interval = setInterval(loadMeetings, 60000);
-
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
-
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -117,6 +78,23 @@ const InstructorDashboard = () => {
   const joinMeeting = (roomId: string) => {
     navigate(`/meeting/${roomId}`);
   };
+
+  // Format date for display
+  const formatDateTime = (date: string, time: string) => {
+    const formattedDate = new Date(date).toLocaleDateString();
+    return `${formattedDate} at ${time}`;
+  };
+
+  // Check if meeting is upcoming (today or in the future)
+  const isUpcomingMeeting = (meeting: ScheduledMeeting) => {
+    const meetingDate = new Date(meeting.scheduled_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return meetingDate >= today;
+  };
+
+  // Filter upcoming meetings
+  const filteredMeetings = upcomingMeetings.filter(isUpcomingMeeting);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -188,24 +166,41 @@ const InstructorDashboard = () => {
             <CardDescription>Manage your scheduled video meetings</CardDescription>
           </CardHeader>
           <CardContent>
-            {upcomingMeetings.length > 0 ? (
+            {isLoadingMeetings ? (
+              <div className="py-4 text-center">
+                <p className="text-muted-foreground">Loading meetings...</p>
+              </div>
+            ) : filteredMeetings.length > 0 ? (
               <div className="space-y-4">
-                {upcomingMeetings.map(meeting => (
+                {filteredMeetings.map(meeting => (
                   <div key={meeting.id} className="flex items-center justify-between border-b pb-4">
                     <div>
                       <h3 className="font-medium">{meeting.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {meeting.scheduledDate} at {meeting.scheduledTime}
+                        {formatDateTime(meeting.scheduled_date, meeting.scheduled_time)}
                       </p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => joinMeeting(meeting.roomId)}
-                    >
-                      <Video className="h-4 w-4 mr-2" />
-                      Join
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => joinMeeting(meeting.room_id)}
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Join
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Copy meeting code to clipboard
+                          navigator.clipboard.writeText(meeting.room_id);
+                          toast.success('Meeting code copied to clipboard');
+                        }}
+                      >
+                        Share
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
