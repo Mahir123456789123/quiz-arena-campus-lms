@@ -22,17 +22,16 @@ const VideoMeetingPage = () => {
   useEffect(() => {
     const initializeZegoCloud = async () => {
       try {
-        if (!roomId || !profile) {
+        if (!roomId || !profile || !user) {
           throw new Error('Missing required information');
         }
 
         console.log('Initializing meeting room:', roomId);
         
-        // Generate token using our edge function
         const { data: tokenData, error: tokenError } = await supabase.functions.invoke('get-zego-token', {
           body: {
             roomId,
-            userId: profile.id,
+            userId: user.id,
             userName: profile.full_name || 'Anonymous'
           },
         });
@@ -49,13 +48,11 @@ const VideoMeetingPage = () => {
 
         console.log('Token generated successfully');
         
-        // Create Zego instance with the token
         const zp = ZegoUIKitPrebuilt.create(tokenData.token);
         
-        // Mount the Zego component
         const element = document.getElementById('zego-container');
         if (element) {
-          zp.joinRoom({
+          await zp.joinRoom({
             container: element,
             scenario: {
               mode: ZegoUIKitPrebuilt.GroupCall,
@@ -81,7 +78,7 @@ const VideoMeetingPage = () => {
     };
 
     initializeZegoCloud();
-  }, [roomId, profile, navigate, isInstructor]);
+  }, [roomId, profile, navigate, isInstructor, user]);
 
   if (!roomId) {
     return <div>Error: No room ID provided</div>;
