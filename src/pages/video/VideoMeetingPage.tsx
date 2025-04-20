@@ -28,6 +28,12 @@ const VideoMeetingPage = () => {
 
         console.log('Initializing meeting room:', roomId);
         
+        // Make sure we have the container element ready
+        const element = document.getElementById('zego-container');
+        if (!element) {
+          throw new Error('Container element not found');
+        }
+
         const { data: tokenData, error: tokenError } = await supabase.functions.invoke('get-zego-token', {
           body: {
             roomId,
@@ -50,24 +56,19 @@ const VideoMeetingPage = () => {
         
         const zp = ZegoUIKitPrebuilt.create(tokenData.token);
         
-        const element = document.getElementById('zego-container');
-        if (element) {
-          await zp.joinRoom({
-            container: element,
-            scenario: {
-              mode: ZegoUIKitPrebuilt.GroupCall,
-            },
-            showTurnOffRemoteCameraButton: true,
-            showTurnOffRemoteMicrophoneButton: true,
-            showRemoveUserButton: isInstructor,
-            onLeaveRoom: () => {
-              navigate(-1);
-            },
-          });
-          console.log('Successfully joined the meeting room');
-        } else {
-          throw new Error('Container element not found');
-        }
+        await zp.joinRoom({
+          container: element,
+          scenario: {
+            mode: ZegoUIKitPrebuilt.GroupCall,
+          },
+          showTurnOffRemoteCameraButton: true,
+          showTurnOffRemoteMicrophoneButton: true,
+          showRemoveUserButton: isInstructor,
+          onLeaveRoom: () => {
+            navigate(-1);
+          },
+        });
+        console.log('Successfully joined the meeting room');
         setIsLoading(false);
       } catch (error: any) {
         console.error('Zego initialization error:', error);
@@ -77,7 +78,12 @@ const VideoMeetingPage = () => {
       }
     };
 
-    initializeZegoCloud();
+    // Add a small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      initializeZegoCloud();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [roomId, profile, navigate, isInstructor, user]);
 
   if (!roomId) {

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BookOpen, Clock, Award, BarChart3, PlayCircle, Video } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useEnrollments } from '@/hooks/useEnrollments';
 import ProgressGraphs from '@/components/dashboard/ProgressGraphs';
@@ -15,12 +16,17 @@ import { DeadlinesCalendar } from '@/components/dashboard/DeadlinesCalendar';
 import PomodoroTimer from '@/components/dashboard/PomodoroTimer';
 import TodoList from '@/components/dashboard/TodoList';
 import { CreateMeetingButton } from '@/components/video/CreateMeetingButton';
+import { useScheduledMeetings, ScheduledMeeting } from '@/hooks/useScheduledMeetings';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [courseCode, setCourseCode] = useState('');
+  const [meetingCode, setMeetingCode] = useState('');
   const { data: enrollments = [], refetch: refetchEnrollments } = useEnrollments();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCourse, setIsLoadingCourse] = useState(false);
+  const [isLoadingMeeting, setIsLoadingMeeting] = useState(false);
+  const { meetings, isLoading: isLoadingMeetings } = useScheduledMeetings();
 
   const handleJoinCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +35,7 @@ const StudentDashboard = () => {
       return;
     }
     
-    setIsLoading(true);
+    setIsLoadingCourse(true);
     
     try {
       const { data: courses, error: courseError } = await supabase
@@ -74,9 +80,44 @@ const StudentDashboard = () => {
     } catch (error: any) {
       toast.error(error.message || 'Failed to join course');
     } finally {
-      setIsLoading(false);
+      setIsLoadingCourse(false);
     }
   };
+
+  const handleJoinMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!meetingCode.trim()) {
+      toast.error('Please enter a meeting code');
+      return;
+    }
+
+    setIsLoadingMeeting(true);
+    
+    try {
+      // Navigate to the meeting room
+      navigate(`/meeting/${meetingCode.trim()}`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to join meeting');
+      setIsLoadingMeeting(false);
+    }
+  };
+
+  // Format date for display
+  const formatDateTime = (date: string, time: string) => {
+    const formattedDate = new Date(date).toLocaleDateString();
+    return `${formattedDate} at ${time}`;
+  };
+
+  // Check if meeting is upcoming (today or in the future)
+  const isUpcomingMeeting = (meeting: ScheduledMeeting) => {
+    const meetingDate = new Date(meeting.scheduled_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return meetingDate >= today;
+  };
+
+  // Filter upcoming meetings
+  const upcomingMeetings = meetings.filter(isUpcomingMeeting);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/50">
@@ -101,8 +142,44 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-muted-foreground">No scheduled meetings</p>
-                <CreateMeetingButton />
+                {isLoadingMeetings ? (
+                  <p className="text-muted-foreground">Loading meetings...</p>
+                ) : upcomingMeetings.length > 0 ? (
+                  upcomingMeetings.map(meeting => (
+                    <div key={meeting.id} className="flex justify-between items-center border-b pb-2 mb-2">
+                      <div>
+                        <p className="font-medium">{meeting.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDateTime(meeting.scheduled_date, meeting.scheduled_time)}
+                        </p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => navigate(`/meeting/${meeting.room_id}`)}
+                      >
+                        Join
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">No upcoming meetings scheduled</p>
+                )}
+                
+                <form onSubmit={handleJoinMeeting} className="space-y-2 mt-4 pt-4 border-t">
+                  <p className="text-sm font-medium">Join with meeting code</p>
+                  <div className="flex space-x-2">
+                    <Input
+                      value={meetingCode}
+                      onChange={(e) => setMeetingCode(e.target.value)}
+                      placeholder="Enter meeting code"
+                      className="bg-background/50 border-muted"
+                    />
+                    <Button type="submit" size="sm" disabled={isLoadingMeeting}>
+                      Join
+                    </Button>
+                  </div>
+                </form>
               </div>
             </CardContent>
           </Card>
@@ -124,8 +201,8 @@ const StudentDashboard = () => {
                   placeholder="Enter course code"
                   className="w-full bg-background/50 border-muted"
                 />
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? 'Joining...' : 'Join Course'}
+                <Button type="submit" disabled={isLoadingCourse} className="w-full">
+                  {isLoadingCourse ? 'Joining...' : 'Join Course'}
                 </Button>
               </form>
             </CardContent>
