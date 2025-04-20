@@ -20,7 +20,6 @@ import { createZegoClient, destroyZegoClient } from "@/lib/zegoClient";
 import { VideoStream } from "@/components/video/VideoStream";
 import { ZegoExpressEngine } from "zego-express-engine-webrtc";
 
-// Define the correct type for the stream update event
 interface ZegoStreamUpdateEvent {
   updateType: "ADD" | "DELETE";
   streamList: Array<{
@@ -47,19 +46,22 @@ const VideoMeetingPage = () => {
   >({});
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const initializedRef = useRef(false);
+  const streamIdRef = useRef<string | null>(null);
 
   const copyMeetingLink = () => {
     if (!roomId) return;
-
     const url = `${window.location.origin}/meeting/${roomId}`;
     navigator.clipboard.writeText(url);
     setIsCopied(true);
     toast.success("Meeting link copied to clipboard");
-
     setTimeout(() => setIsCopied(false), 3000);
   };
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     let mounted = true;
 
     const initializeZego = async () => {
@@ -67,8 +69,6 @@ const VideoMeetingPage = () => {
         if (!roomId || !profile || !user) {
           throw new Error("Missing required information");
         }
-
-        console.log("Initializing meeting room:", roomId);
 
         const { data: tokenData, error: tokenError } =
           await supabase.functions.invoke("get-zego-token", {
@@ -80,14 +80,8 @@ const VideoMeetingPage = () => {
           });
 
         if (tokenError || !tokenData?.token) {
-          console.error(
-            "Token generation error:",
-            tokenError || "No token returned"
-          );
           throw new Error(tokenError?.message || "Failed to get a valid token");
         }
-
-        console.log("Token generated successfully");
 
         const zegoInstance = await createZegoClient(tokenData.token);
         if (mounted) {
@@ -98,7 +92,6 @@ const VideoMeetingPage = () => {
           audio: true,
           video: true,
         });
-
         if (mounted) {
           setLocalStream(stream);
         }
@@ -110,15 +103,13 @@ const VideoMeetingPage = () => {
           { userUpdate: true }
         );
 
-        await zegoInstance.startPublishingStream(
-          `${user.id}-${Date.now()}`,
-          stream
-        );
+        const streamID = `${user.id}-main-stream`;
+        streamIdRef.current = streamID;
+        await zegoInstance.startPublishingStream(streamID, stream);
 
-        // Use the properly typed event handler with correct parameter types
         zegoInstance.on(
           "roomStreamUpdate",
-          async (roomID: string, updateInfo: ZegoStreamUpdateEvent) => {
+          async (_roomID: string, updateInfo: ZegoStreamUpdateEvent) => {
             if (updateInfo.updateType === "ADD") {
               for (const stream of updateInfo.streamList) {
                 const remoteStream = await zegoInstance.startPlayingStream(
@@ -145,13 +136,10 @@ const VideoMeetingPage = () => {
           }
         );
 
-        console.log("Successfully joined the meeting room");
-
         if (mounted) {
           setIsLoading(false);
         }
       } catch (error: any) {
-        console.error("Zego initialization error:", error);
         if (mounted) {
           setError(error.message || "Failed to join meeting");
           setIsLoading(false);
@@ -167,6 +155,10 @@ const VideoMeetingPage = () => {
       mounted = false;
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
+      }
+      if (zego) {
+        zego.logoutRoom(); // Proper cleanup
+        zego.stopPublishingStream(streamIdRef.current!); // Ensure stream is stopped
       }
       destroyZegoClient();
     };
@@ -255,7 +247,10 @@ const VideoMeetingPage = () => {
                   issue.
                 </p>
                 <Button
-                  onClick={() => window.location.reload()}
+                  onClick={() => {
+                    setShowErrorDialog(false);
+                    setTimeout(() => window.location.reload(), 1000);
+                  }}
                   variant="outline"
                 >
                   Try Again
@@ -265,7 +260,14 @@ const VideoMeetingPage = () => {
 
             {!isLoading && !error && (
               <div className="relative w-full h-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 h-full">
+                <div
+                  className={`grid gap-4 p-4 h-full ${
+                    Object.keys(remoteStreams).length + (localStream ? 1 : 0) >
+                    1
+                      ? "grid-cols-2"
+                      : "grid-cols-1"
+                  } md:grid-cols-3`}
+                >
                   {localStream && zego && (
                     <div className="relative">
                       <VideoStream
@@ -319,30 +321,6 @@ const VideoMeetingPage = () => {
         </Card>
       </main>
       <Footer />
-
-      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Meeting Connection Error</DialogTitle>
-            <DialogDescription>
-              {error || "There was a problem connecting to the meeting room."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button variant="outline" onClick={() => navigate(-1)}>
-              Go Back
-            </Button>
-            <Button
-              onClick={() => {
-                setShowErrorDialog(false);
-                window.location.reload();
-              }}
-            >
-              Try Again
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
