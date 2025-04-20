@@ -66,8 +66,12 @@ const Navbar = () => {
             onClick={handlePadhleBhaiClick}
             className="flex items-center gap-2"
           >
-            <Book className="h-6 w-6 text-edu-primary" />
-            <span className="text-xl font-bold text-foreground">PadhleBhai</span>
+            <img 
+              src="/lovable-uploads/6e0df683-158b-49d9-8e91-b549e735a6e2.png" 
+              alt="GigaLearn Logo" 
+              className="h-8 w-8"
+            />
+            <span className="text-xl font-bold text-foreground">GigaLearn</span>
           </a>
         </div>
 

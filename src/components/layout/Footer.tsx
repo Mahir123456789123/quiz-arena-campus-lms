@@ -9,8 +9,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-edu-primary" />
-              <span className="text-xl font-bold">PadhleBhai</span>
+              <img 
+                src="/lovable-uploads/6e0df683-158b-49d9-8e91-b549e735a6e2.png" 
+                alt="GigaLearn Logo" 
+                className="h-6 w-6"
+              />
+              <span className="text-xl font-bold">GigaLearn</span>
             </div>
             <p className="text-muted-foreground">
               The all-in-one learning platform for your campus that makes
@@ -69,14 +73,6 @@ const Footer = () => {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Content Hub
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/leaderboard"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Leaderboard
                 </Link>
               </li>
             </ul>
@@ -161,7 +157,7 @@ const Footer = () => {
 
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
-            &copy; {new Date().getFullYear()} PadhleBhai. All rights reserved.
+            &copy; {new Date().getFullYear()} GigaLearn. All rights reserved.
           </p>
           <p className="text-muted-foreground text-sm mt-4 md:mt-0">
             Powered by Mahir Shah, Hetanshi Shah, Sakshi Jadhav, Aditya Khabiya
