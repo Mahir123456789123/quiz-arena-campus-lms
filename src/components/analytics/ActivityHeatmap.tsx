@@ -4,7 +4,7 @@ const ActivityHeatmap = () => {
   // Sample data - in a real app, this would come from your API/database
   const data = [
     {
-      id: "Monday",
+      id: "Mon",
       data: [
         { x: "8-10am", y: 20 },
         { x: "10-12pm", y: 45 },
@@ -16,7 +16,7 @@ const ActivityHeatmap = () => {
       ],
     },
     {
-      id: "Tuesday",
+      id: "Tue",
       data: [
         { x: "8-10am", y: 15 },
         { x: "10-12pm", y: 40 },
@@ -28,7 +28,7 @@ const ActivityHeatmap = () => {
       ],
     },
     {
-      id: "Wednesday",
+      id: "Wed",
       data: [
         { x: "8-10am", y: 25 },
         { x: "10-12pm", y: 50 },
@@ -40,7 +40,7 @@ const ActivityHeatmap = () => {
       ],
     },
     {
-      id: "Thursday",
+      id: "Thu",
       data: [
         { x: "8-10am", y: 10 },
         { x: "10-12pm", y: 35 },
@@ -52,7 +52,7 @@ const ActivityHeatmap = () => {
       ],
     },
     {
-      id: "Friday",
+      id: "Fri",
       data: [
         { x: "8-10am", y: 30 },
         { x: "10-12pm", y: 55 },
@@ -64,7 +64,7 @@ const ActivityHeatmap = () => {
       ],
     },
     {
-      id: "Saturday",
+      id: "Sat",
       data: [
         { x: "8-10am", y: 5 },
         { x: "10-12pm", y: 20 },
@@ -76,7 +76,7 @@ const ActivityHeatmap = () => {
       ],
     },
     {
-      id: "Sunday",
+      id: "Sun",
       data: [
         { x: "8-10am", y: 5 },
         { x: "10-12pm", y: 15 },
@@ -91,35 +91,29 @@ const ActivityHeatmap = () => {
 
   return (
     <div className="h-full w-full">
-      <h3 className="text-lg font-semibold mb-4 text-center">Weekly Activity Pattern</h3>
-      <div className="h-[400px] w-full">
+      <div className="h-[280px] w-full">
         <ResponsiveHeatMap
           data={data}
-          margin={{ top: 30, right: 60, bottom: 80, left: 80 }}
+          margin={{ top: 30, right: 30, bottom: 80, left: 50 }} // Increased bottom margin
           valueFormat=">-.2s"
           axisTop={null}
           axisRight={null}
           axisBottom={{
             tickSize: 5,
             tickPadding: 10,
-            tickRotation: -45,
+            tickRotation: -45, // Rotate labels for better visibility
             legend: "Time of Day",
             legendPosition: "middle",
-            legendOffset: 50,
-            tickStrokeWidth: 1,
-            tickStroke: "var(--border)",
-            legendColor: "var(--foreground)",
+            legendOffset: 55,
+            truncateTickAt: 0, // Ensure full label visibility
           }}
           axisLeft={{
             tickSize: 5,
-            tickPadding: 10,
+            tickPadding: 5,
             tickRotation: 0,
-            legend: "Day of Week",
+            legend: "Day",
             legendPosition: "middle",
-            legendOffset: -60,
-            tickStrokeWidth: 1,
-            tickStroke: "var(--border)",
-            legendColor: "var(--foreground)",
+            legendOffset: -40,
           }}
           colors={{
             type: "sequential",
@@ -127,102 +121,126 @@ const ActivityHeatmap = () => {
             minValue: 0,
             maxValue: 100,
           }}
-          emptyColor="var(--muted)"
-          borderColor="var(--border)"
+          emptyColor="#f5f5f5"
+          borderColor="#e2e8f0"
           borderWidth={1}
+          enableLabels={true}
+          labelTextColor="#ffffff"
+          cellHoverOthersOpacity={0.25}
           hoverTarget="cell"
           cellOpacity={1}
-          label={d => `${d.value} activity units`}
-          labelTextColor={{
-            from: 'color',
-            modifiers: [['darker', 3]],
-          }}
+          cellBorderWidth={1}
           legends={[
             {
               anchor: "bottom",
               translateX: 0,
-              translateY: 60,
+              translateY: 60, // Adjusted to account for larger bottom margin
               length: 200,
-              thickness: 12,
+              thickness: 10,
               direction: "row",
               tickPosition: "after",
-              tickSize: 5,
+              tickSize: 3,
               tickSpacing: 4,
               tickOverlap: false,
-              title: "Activity Level",
+              title: "Activity →",
               titleAlign: "start",
-              titleOffset: 8,
-              titleColor: "var(--foreground)",
+              titleOffset: 4,
             },
           ]}
-          annotations={[]}
           theme={{
+            background: "transparent",
             text: {
-              fontSize: 12,
-              fontWeight: 600,
-              fill: "var(--foreground)",
+              fontSize: 11,
+              fill: "#64748b",
+              outlineWidth: 0,
+              outlineColor: "transparent",
             },
             tooltip: {
               container: {
-                background: "var(--background)",
-                color: "var(--foreground)",
+                background: "white",
+                color: "#333333",
                 fontSize: 12,
                 padding: "8px 12px",
                 borderRadius: 6,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                borderColor: "var(--border)",
-                borderWidth: 1,
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               },
             },
             axis: {
               domain: {
                 line: {
-                  stroke: "var(--border)",
-                  strokeWidth: 1.5,
+                  stroke: "#e2e8f0",
+                  strokeWidth: 1,
                 }
               },
               ticks: {
                 text: {
-                  fontSize: 12,
-                  fontWeight: 500,
-                  fill: "var(--foreground)",
+                  fontSize: 10,
+                  fill: "#64748b",
                 },
                 line: {
-                  stroke: "var(--border)",
-                  strokeWidth: 1.5,
+                  stroke: "#e2e8f0",
+                  strokeWidth: 1,
                 },
               },
               legend: {
                 text: {
-                  fontSize: 14,
-                  fontWeight: 600,
-                  fill: "var(--foreground)",
+                  fontSize: 11,
+                  fill: "#64748b",
                 },
-              },
-            },
-            grid: {
-              line: {
-                stroke: "var(--border)",
-                strokeWidth: 1,
               },
             },
             labels: {
               text: {
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 600,
-                fill: "#ffffff",
+                fill: "#FFFFFF",
               }
+            },
+            legends: {
+              text: {
+                fontSize: 10,
+                fill: "#64748b",
+              },
+              title: {
+                text: {
+                  fontSize: 10,
+                  fill: "#64748b",
+                  fontWeight: 600,
+                },
+              },
             }
           }}
+          cellComponent={({ cell, borderWidth, enableLabels, textColor, onHover, onLeave, onClick }) => {
+            const { data, x, y, width, height, color } = cell;
+            return (
+              <g transform={`translate(${x}, ${y})`} onClick={onClick} onMouseEnter={onHover} onMouseLeave={onLeave}>
+                <rect
+                  width={width}
+                  height={height}
+                  fill={color}
+                  strokeWidth={borderWidth}
+                  stroke="#FFFFFF"
+                />
+                {enableLabels && (
+                  <text
+                    x={width / 2}
+                    y={height / 2}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{
+                      fill: Number(data.formattedValue) > 50 ? "#FFFFFF" : "#334155",
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {data.formattedValue}
+                  </text>
+                )}
+              </g>
+            );
+          }}
         />
-      </div>
-      <div className="text-center mt-6 mb-2">
-        <p className="text-sm font-medium text-foreground">
-          You're most productive on <span className="font-bold text-primary">Wednesday evenings (8-10pm)</span>
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Activity patterns suggest focusing on important tasks during high-energy periods
-        </p>
       </div>
     </div>
   )

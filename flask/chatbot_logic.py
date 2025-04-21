@@ -10,6 +10,7 @@ BACKEND_API = "http://127.0.0.1:5000"
 def chatbot_with_data(user_input, student_id, progress_data, deadline_data):
     prompt = f"""
     You are a helpful academic chatbot. Answer this student based on their info.
+	Please don't use asterisks. Give clean output.
 
     ID: {student_id}
     Question: {user_input}
